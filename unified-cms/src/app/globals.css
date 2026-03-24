@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+
+:root {
+  --accent: #E84D3D; /* default, will be overridden per site */
+}
+
+body {
+  background: white;
+  margin: 0;
+  padding: 0;
+}
+
+/* Optional: smooth transitions for hover states */
+* {
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+/* Optional: custom scrollbar for webkit */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.05);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.2);
+  border-radius: 4px;
+}
