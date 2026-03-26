@@ -175,9 +175,9 @@ export default function SiteLayout({ children }) {
             </div>
             <div>
               <div className="text-xs font-semibold text-light-text">Admin</div>
-              <div className="text-[10px] text-light-text-muted">
+              {/* <div className="text-[10px] text-light-text-muted">
                 admin@aeontrix.ai
-              </div>
+              </div> */}
             </div>
           </div>
         )}
