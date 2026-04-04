@@ -3,13 +3,13 @@
 
 import { SettingsPanel } from "./common/SettingsPanel";
 
-import { TBBTDashboard } from "./sites/tbbt/TBBTDashboard";
+// import { TBBTDashboard } from "./sites/tbbt/TBBTDashboard";
 import { TBBTEvents } from "./sites/tbbt/TBBTEvents";
 import { TBBTBlog } from "./sites/tbbt/TBBTBlog";
 import { TBBTGallery } from "./sites/tbbt/TBBTGallery";
 
 // CSO
-import { CSODashboard } from "./sites/cso/CSODashboard";
+// import { CSODashboard } from "./sites/cso/CSODashboard";
 import { CSOBlog } from "./sites/cso/CSOBlog";
 import { CSOPrograms } from "./sites/cso/CSOPrograms";
 import { CSOTeam } from "./sites/cso/CSOTeam";
@@ -17,7 +17,7 @@ import { CSODonations } from "./sites/cso/CSODonations";
 import { CSOInquiries } from "./sites/cso/CSOInquiries";
 
 // NAO
-import { NAODashboard } from "./sites/nao/NAODashboard";
+import { NAOBlogs } from "./sites/nao/NAOBlogs";
 import { NAOExperts } from "./sites/nao/NAOExperts";
 import { NAOResources } from "./sites/nao/NAOResources";
 import { NAOPartners } from "./sites/nao/NAOPartners";
@@ -26,13 +26,12 @@ import { NAONews } from "./sites/nao/NAONews";
 
 const map = {
   tbbt: {
-    dashboard: TBBTDashboard,
-    events: TBBTEvents,
     blog: TBBTBlog,
+    events: TBBTEvents,
+
     gallery: TBBTGallery,
   },
   cso: {
-    dashboard: CSODashboard,
     blog: CSOBlog,
     programs: CSOPrograms,
     team: CSOTeam,
@@ -40,7 +39,7 @@ const map = {
     inquiries: CSOInquiries,
   },
   nao: {
-    dashboard: NAODashboard,
+    blog: NAOBlogs,
     experts: NAOExperts,
     resources: NAOResources,
     partners: NAOPartners,
@@ -54,7 +53,7 @@ export const ModuleRouter = ({ siteId, moduleId, accent, site }) => {
     return <SettingsPanel site={site} accent={accent} />;
   const Component = map[siteId]?.[moduleId];
   return Component ? (
-    <Component accent={accent} />
+    <Component accent={accent} id={site.id} />
   ) : (
     <div style={{ color: "rgba(255,255,255,0.4)" }}>Module not found</div>
   );

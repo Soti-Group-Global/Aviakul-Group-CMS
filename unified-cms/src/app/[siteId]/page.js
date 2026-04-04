@@ -11,7 +11,7 @@ export default async function SiteDashboard({ params }) {
   return (
     <ModuleRouter
       siteId={siteId}
-      moduleId="dashboard"
+      moduleId="blog"
       accent={site.color}
       site={site}
     />

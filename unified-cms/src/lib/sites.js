@@ -8,9 +8,10 @@ export const SITES = {
     description: "Precision-Engineered Events",
     logo: "TBBT",
     modules: [
-      { id: "dashboard", label: "Dashboard", icon: "home" },
+      // { id: "dashboard", label: "Dashboard", icon: "home" },
+       { id: "blog", label: "Blog Posts", icon: "blog" },
       { id: "events", label: "Events", icon: "event" },
-      { id: "blog", label: "Blog Posts", icon: "blog" },
+     
       { id: "gallery", label: "Media Gallery", icon: "gallery" },
       { id: "settings", label: "Settings", icon: "settings" },
     ],
@@ -23,7 +24,7 @@ export const SITES = {
     description: "Centre for Scientific Outreach",
     logo: "CSO",
     modules: [
-      { id: "dashboard", label: "Dashboard", icon: "home" },
+      // { id: "dashboard", label: "Dashboard", icon: "home" },
       { id: "blog", label: "Blog / News", icon: "blog" },
       { id: "programs", label: "Programs", icon: "award" },
       { id: "team", label: "Team Members", icon: "people" },
@@ -40,12 +41,13 @@ export const SITES = {
     description: "National Aviation Olympiad",
     logo: "NAO",
     modules: [
-      { id: "dashboard", label: "Dashboard", icon: "home" },
+      // { id: "dashboard", label: "Dashboard", icon: "home" },
+       { id: "blog", label: "Blogs", icon: "blog" },
       { id: "experts", label: "Expert Panel", icon: "people" },
       { id: "resources", label: "Resources", icon: "resource" },
       { id: "partners", label: "Partners", icon: "partner" },
-      { id: "registrations", label: "Registrations", icon: "users" },
-      { id: "news", label: "News & Updates", icon: "blog" },
+      // { id: "registrations", label: "Registrations", icon: "users" },
+      // { id: "news", label: "News & Updates", icon: "blog" },
       { id: "settings", label: "Settings", icon: "settings" },
     ],
   },
