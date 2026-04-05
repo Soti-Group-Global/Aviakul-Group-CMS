@@ -43,7 +43,7 @@ export async function PUT(req, { params }) {
 
     const formData = await req.formData();
     const title = formData.get("title");
-    const description = formData.get("description");
+    const content = formData.get("content");
     const siteId = formData.get("siteId");
     const status = formData.get("status");
     const order = formData.get("order");
@@ -106,7 +106,7 @@ export async function PUT(req, { params }) {
 
     const updateData = {};
     if (title !== null) updateData.title = title;
-    if (description !== null) updateData.description = description;
+    if (content !== null) updateData.content = content;
     if (siteId !== null) updateData.siteId = siteId;
     if (status !== null) updateData.status = status;
     if (order !== null) updateData.order = parseInt(order);

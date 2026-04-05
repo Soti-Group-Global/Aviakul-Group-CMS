@@ -31,7 +31,7 @@ export async function POST(req) {
     const title = formData.get("title");
     const category = formData.get("category");
     const siteId = formData.get("siteId");
-    const status = formData.get("status") || "TBD";
+    // const status = formData.get("status") || "TBD";
     const order = formData.get("order");
     const file = formData.get("file"); // optional
 
@@ -62,12 +62,12 @@ export async function POST(req) {
       );
     }
 
-    if (status && !["Available", "TBD"].includes(status)) {
-      return Response.json(
-        { success: false, message: "Status must be 'Available' or 'TBD'" },
-        { status: 400 },
-      );
-    }
+    // if (status && !["Available", "TBD"].includes(status)) {
+    //   return Response.json(
+    //     { success: false, message: "Status must be 'Available' or 'TBD'" },
+    //     { status: 400 },
+    //   );
+    // }
 
     let fileId = null;
     if (file && file.size > 0) {
@@ -85,21 +85,21 @@ export async function POST(req) {
     }
 
     // If status is "Available" but no file, we could throw an error (optional)
-    if (status === "Available" && !fileId) {
-      return Response.json(
-        {
-          success: false,
-          message: "When status is 'Available', a file is required",
-        },
-        { status: 400 },
-      );
-    }
+    // if (!fileId) {
+    //   return Response.json(
+    //     {
+    //       success: false,
+    //       message: "When status is 'Available', a file is required",
+    //     },
+    //     { status: 400 },
+    //   );
+    // }
 
     const resource = await Resource.create({
       title,
       category,
       siteId,
-      status,
+      // status,
       order: order ? parseInt(order) : 0,
       fileId,
     });

@@ -263,7 +263,7 @@ export default function SiteLayout({ children }) {
 
         {/* Content Area - unchanged */}
         <div className="flex-1 overflow-y-auto p-7">
-          <div className="max-w-5xl mx-auto">{children}</div>
+          <div className="">{children}</div>
         </div>
       </div>
 

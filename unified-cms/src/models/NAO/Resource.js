@@ -22,11 +22,11 @@ const ResourceSchema = new mongoose.Schema(
       ref: "fs.files", // GridFS reference
       default: null,
     },
-    status: {
-      type: String,
-      enum: ["Available", "TBD"],
-      default: "TBD",
-    },
+    // status: {
+    //   type: String,
+    //   enum: ["Available", "TBD"],
+    //   default: "TBD",
+    // },
     order: {
       type: Number,
       default: 0,

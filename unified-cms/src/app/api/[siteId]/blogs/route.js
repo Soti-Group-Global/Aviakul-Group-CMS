@@ -36,7 +36,7 @@ export async function POST(req) {
 
     const formData = await req.formData();
     const title = formData.get("title");
-    const description = formData.get("description") || "";
+    const content = formData.get("content") || "";
     const siteId = formData.get("siteId");
     const status = formData.get("status") || "draft";
     const order = formData.get("order");
@@ -79,7 +79,7 @@ export async function POST(req) {
 
     const blog = await Blog.create({
       title,
-      description,
+      content,
       siteId,
       status,
       order: order ? parseInt(order) : 0,

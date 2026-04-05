@@ -45,7 +45,7 @@ export async function PUT(req, { params }) {
     const title = formData.get("title");
     const category = formData.get("category");
     const siteId = formData.get("siteId");
-    const status = formData.get("status");
+    // const status = formData.get("status");
     const order = formData.get("order");
     const file = formData.get("file"); // optional
 
@@ -80,12 +80,12 @@ export async function PUT(req, { params }) {
     //   );
     // }
 
-    if (status && !["Available", "TBD"].includes(status)) {
-      return Response.json(
-        { success: false, message: "Status must be 'Available' or 'TBD'" },
-        { status: 400 },
-      );
-    }
+    // if (status && !["Available", "TBD"].includes(status)) {
+    //   return Response.json(
+    //     { success: false, message: "Status must be 'Available' or 'TBD'" },
+    //     { status: 400 },
+    //   );
+    // }
 
     let fileId = existingResource.fileId;
 
@@ -108,7 +108,7 @@ export async function PUT(req, { params }) {
         uploadStream.on("error", reject);
         uploadStream.end(buffer);
       });
-    } else if (file && file.size === 0 && status === "Available") {
+    } else if (file && file.size === 0) {
       // If user explicitly wants to remove file but status is Available, reject
       return Response.json(
         {
@@ -120,22 +120,22 @@ export async function PUT(req, { params }) {
     }
 
     // If status is "Available" but no fileId (and no new file provided), reject
-    const finalStatus = status || existingResource.status;
-    if (finalStatus === "Available" && !fileId) {
-      return Response.json(
-        {
-          success: false,
-          message: "When status is 'Available', a file is required",
-        },
-        { status: 400 },
-      );
-    }
+    // const finalStatus = status || existingResource.status;
+    // if (finalStatus === "Available" && !fileId) {
+    //   return Response.json(
+    //     {
+    //       success: false,
+    //       message: "When status is 'Available', a file is required",
+    //     },
+    //     { status: 400 },
+    //   );
+    // }
 
     const updateData = {};
     if (title !== null) updateData.title = title;
     if (category !== null) updateData.category = category;
     if (siteId !== null) updateData.siteId = siteId;
-    if (status !== null) updateData.status = status;
+    // if (status !== null) updateData.status = status;
     if (order !== null) updateData.order = parseInt(order);
     updateData.fileId = fileId;
 

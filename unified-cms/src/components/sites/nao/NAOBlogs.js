@@ -1,5 +1,7 @@
 // NAOBlogs.jsx
+import CommonRichTextEditor from "../../common/CommonRichTextEditor.jsx";
 import { useState, useEffect } from "react";
+import { confirmDelete, showToast } from "@/lib/deleteAlert";
 
 // ---------- Icons ----------
 const icons = {
@@ -203,7 +205,7 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
   const [editingBlog, setEditingBlog] = useState(null);
   const [formData, setFormData] = useState({
     title: "",
-    description: "",
+    content: "",
     status: "draft",
     order: 0,
   });
@@ -235,7 +237,7 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
   }, [siteId, statusFilter, sortBy]);
 
   const resetModal = () => {
-    setFormData({ title: "", description: "", status: "draft", order: 0 });
+    setFormData({ title: "", content: "", status: "draft", order: 0 });
     setImageFile(null);
     setEditingBlog(null);
     setError("");
@@ -250,29 +252,34 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
     setEditingBlog(blog);
     setFormData({
       title: blog.title,
-      description: blog.description || "",
+      content: blog.content || "",
       status: blog.status,
       order: blog.order || 0,
     });
     setImageFile(null);
     setModalOpen(true);
   };
-
   const handleDelete = async (blog) => {
-    if (!confirm("Delete this blog post? This action cannot be undone."))
-      return;
+    const confirmed = await confirmDelete(
+      `Delete "${blog.title}"? This action cannot be undone.`,
+    );
+    if (!confirmed) return;
+
     try {
       const res = await fetch(`/api/${siteId}/blogs/${blog._id}`, {
         method: "DELETE",
       });
       const json = await res.json();
-      if (json.success) fetchBlogs();
-      else alert(json.message);
+      if (json.success) {
+        fetchBlogs();
+        showToast("Blog deleted successfully");
+      } else {
+        showToast(json.message, "error");
+      }
     } catch (err) {
-      alert("Delete failed");
+      showToast("Delete failed", "error");
     }
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -284,7 +291,7 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
 
     const payload = new FormData();
     payload.append("title", formData.title);
-    payload.append("description", formData.description);
+    payload.append("content", formData.content);
     payload.append("siteId", siteId);
     payload.append("status", formData.status);
     payload.append("order", formData.order.toString());
@@ -338,13 +345,16 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
       render: (v) => <span className="font-medium text-gray-800">{v}</span>,
     },
     {
-      key: "description",
-      label: "Description",
-      render: (v) => (
-        <span className="max-w-xs truncate block text-gray-500">
-          {v || "—"}
-        </span>
-      ),
+      key: "content",
+      label: "Content",
+      render: (v) => {
+        const text = v?.replace(/<[^>]+>/g, "");
+        return (
+          <span className="max-w-xs truncate block text-gray-500">
+            {text || "—"}
+          </span>
+        );
+      },
     },
     {
       key: "status",
@@ -425,17 +435,21 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description
+              Content
             </label>
-            <textarea
-              value={formData.description}
+            <CommonRichTextEditor
+              value={formData.content}
+              onChange={(html) => setFormData({ ...formData, content: html })}
+            />
+            {/* <textarea
+              value={formData.content}
               onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
+                setFormData({ ...formData, content: e.target.value })
               }
               rows={3}
               className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Short description..."
-            />
+              placeholder="Short content..."
+            /> */}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

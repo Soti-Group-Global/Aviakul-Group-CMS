@@ -1,5 +1,6 @@
 // NAOexperts.jsx
 import { useState, useEffect } from "react";
+import { confirmDelete, showToast } from "@/lib/deleteAlert";
 
 // ---------- Icons ----------
 const icons = {
@@ -197,17 +198,24 @@ export const NAOExperts = ({ accent = "#3b82f6", id }) => {
   };
 
   const handleDelete = async (expert) => {
-    if (!confirm("Are you sure you want to delete this expert?")) return;
+    const confirmed = await confirmDelete(
+      `Delete "${expert.name}"? This action cannot be undone.`,
+    );
+    if (!confirmed) return;
+
     try {
-      // DELETE /api/{id}/experts/{expertId}
       const res = await fetch(`/api/${id}/experts/${expert._id}`, {
         method: "DELETE",
       });
       const json = await res.json();
-      if (json.success) fetchExperts();
-      else alert(json.message);
+      if (json.success) {
+        fetchExperts();
+        showToast("Expert deleted successfully");
+      } else {
+        showToast(json.message, "error");
+      }
     } catch (err) {
-      alert("Delete failed");
+      showToast("Delete failed", "error");
     }
   };
 
@@ -375,7 +383,7 @@ export const NAOExperts = ({ accent = "#3b82f6", id }) => {
               type="file"
               accept="image/*"
               onChange={(e) => setProfileFile(e.target.files[0])}
-              className="w-full text-sm"
+              className="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
             />
             {editingExpert && (
               <p className="text-xs text-gray-500 mt-1">

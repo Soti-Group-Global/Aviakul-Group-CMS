@@ -17,7 +17,7 @@ const BlogSchema = new mongoose.Schema(
       // ref: "Site",
       // required: true,
     },
-    description: {
+    content: {
       type: String,
       default: "",
     },

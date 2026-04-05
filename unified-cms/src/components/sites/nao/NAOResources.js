@@ -1,5 +1,21 @@
-// NAOResources.jsx
 import { useState, useEffect } from "react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { confirmDelete, showToast } from "@/lib/deleteAlert";
 
 // ---------- Icons ----------
 const icons = {
@@ -7,16 +23,18 @@ const icons = {
   edit: "M16.5 3.5L20.5 7.5M4 20L7.5 19L18.5 8L20.5 6L16.5 2L14.5 4L3.5 15L4 20Z",
   trash:
     "M4 7h16M10 11v6M14 11v6M5 7l1 13a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-13M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3",
+  grip: "M3 12h18M3 6h18M3 18h18",
   file: "M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z M13 2v7h7",
+  download: "M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4 M7 10l5 5 5-5 M12 15V3",
 };
 
-const Icon = ({ d, size = 20 }) => (
+const Icon = ({ d, size = 20, color = "currentColor" }) => (
   <svg
     width={size}
     height={size}
     viewBox="0 0 24 24"
     fill="none"
-    stroke="currentColor"
+    stroke={color}
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -25,120 +43,179 @@ const Icon = ({ d, size = 20 }) => (
   </svg>
 );
 
-// ---------- Badge Component (self-contained) ----------
-const Badge = ({ status }) => {
-  const color = status === "Available" ? "#10b981" : "#f59e0b";
-  const bgColor = status === "Available" ? "#d1fae5" : "#fed7aa";
+const categoryStyles = {
+  "For Schools": { header: "bg-orange-500" },
+  "For Students": { header: "bg-green-500" },
+  "For Coordinators": { header: "bg-teal-500" },
+  "Media Resources": { header: "bg-blue-600" },
+};
+
+// ---------- Sortable Resource Row ----------
+const SortableResourceItem = ({ resource, onEdit, onDelete }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: resource._id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
   return (
-    <span
-      className="px-2 py-1 rounded-full text-xs font-semibold"
-      style={{ backgroundColor: bgColor, color }}
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      className={`group w-full py-2 px-1 flex items-center text-black border-b border-gray-400 ${isDragging ? "shadow-lg ring-2 ring-blue-100" : ""}`}
     >
-      {status}
-    </span>
+      {/* Drag handle */}
+      <div
+        {...listeners}
+        className="flex-shrink-0 cursor-grab active:cursor-grabbing group-hover:text-gray-700 transition-colors"
+      >
+        <Icon d={icons.grip} size={16} />
+      </div>
+
+      {/* Title */}
+      <div className="flex-1 min-w-0 ml-2">
+        <p
+          className="text-sm font-semibold break-words leading-tight"
+          title={resource.title}
+        >
+          {resource.title}
+        </p>
+      </div>
+
+      {/* Download button (optional) */}
+      <div className="flex gap-1 items-center mx-1">
+        <button
+          className="w-8 h-8 flex items-center justify-center rounded-lg text-blue-500 bg-blue-50 transition-all"
+          title="Download"
+        >
+          <Icon d={icons.download} size={14} />
+        </button>
+      </div>
+
+      {/* Actions */}
+      <div className="flex-shrink-0 flex items-end gap-2">
+        <button
+          onClick={() => onEdit(resource)}
+          className="flex items-center justify-center text-amber-500 bg-amber-50 transition-all p-1.5 rounded-lg"
+          title="Edit"
+        >
+          <Icon d={icons.edit} size={14} />
+        </button>
+        <button
+          onClick={() => onDelete(resource)}
+          className="flex items-center justify-center text-red-500 bg-red-50 transition-all p-1.5 rounded-lg"
+          title="Delete"
+        >
+          <Icon d={icons.trash} size={14} />
+        </button>
+      </div>
+    </div>
   );
 };
 
-// ---------- SectionHeader ----------
-const SectionHeader = ({ title, count, accent, onAdd }) => (
-  <div className="flex justify-between items-center mb-5">
-    <div className="flex items-center gap-2.5">
-      <h2 className="text-lg font-semibold text-light-text m-0 font-sans">
-        {title}
-      </h2>
-      {count != null && (
-        <span
-          className="text-xs font-mono font-semibold px-2 py-0.5 rounded-full"
-          style={{ color: accent, backgroundColor: `${accent}18` }}
-        >
-          {count}
-        </span>
-      )}
-    </div>
-    {onAdd && (
-      <button
-        onClick={onAdd}
-        className="flex items-center gap-1.5 border-none rounded-lg px-4 py-2 text-sm font-semibold cursor-pointer transition-opacity hover:opacity-85"
-        style={{ backgroundColor: accent, color: "#fff" }}
-      >
-        <Icon d={icons.plus} size={15} /> Add New
-      </button>
-    )}
-  </div>
-);
+// ---------- Category Section ----------
+const CategorySection = ({
+  category,
+  resources,
+  onEdit,
+  onDelete,
+  onReorder,
+  onAdd,
+}) => {
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
 
-// ---------- DataTable ----------
-const DataTable = ({ columns, rows, accent, onEdit, onDelete }) => (
-  <div className="overflow-x-auto rounded-xl border border-light-border">
-    <table className="w-full border-collapse text-sm font-sans">
-      <thead>
-        <tr className="bg-black/5">
-          {columns.map((col) => (
-            <th
-              key={col.key}
-              className="px-4 py-3 text-left text-xs text-light-text-muted uppercase tracking-wider font-medium border-b border-light-border whitespace-nowrap"
-            >
-              {col.label}
-            </th>
-          ))}
-          {(onEdit || onDelete) && (
-            <th className="px-4 py-3 text-right text-xs text-light-text-muted uppercase tracking-wider font-medium border-b border-light-border">
-              Actions
-            </th>
-          )}
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((row, ri) => (
-          <tr
-            key={ri}
-            className="border-b border-light-border hover:bg-black/5 transition-colors"
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    if (active.id !== over?.id) {
+      const oldIndex = resources.findIndex((r) => r._id === active.id);
+      const newIndex = resources.findIndex((r) => r._id === over.id);
+      onReorder?.(category, arrayMove(resources, oldIndex, newIndex));
+    }
+  };
+
+  const style = categoryStyles[category];
+
+  if (resources.length === 0) {
+    return (
+      <div className="bg-gray-100 rounded-xl overflow-hidden shadow-sm h-full">
+        <div
+          className={`${style.header} text-white px-4 py-3 flex items-center justify-between font-semibold`}
+        >
+          <span>{category}</span>
+          <button
+            onClick={() => onAdd?.(category)}
+            className="flex items-center gap-1 text-sm text-white/90 hover:text-white"
           >
-            {columns.map((col) => (
-              <td
-                key={col.key}
-                className="px-4 py-3 text-light-text whitespace-nowrap"
-              >
-                {col.render ? col.render(row[col.key], row) : row[col.key]}
-              </td>
+            <Icon d={icons.plus} size={14} /> Add
+          </button>
+        </div>
+        <p className="text-gray-400 text-sm py-4 text-center">
+          No resources in this category.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+    >
+      <SortableContext
+        items={resources.map((r) => r._id)}
+        strategy={verticalListSortingStrategy}
+      >
+        <div className="bg-gray-100 rounded-xl overflow-hidden shadow-sm h-full flex flex-col">
+          <div
+            className={`${style.header} text-white px-4 py-3 flex items-center justify-between font-semibold`}
+          >
+            <span>{category}</span>
+            <button
+              onClick={() => onAdd?.(category)}
+              className="flex items-center gap-1 text-sm text-white/90 hover:text-white"
+            >
+              <Icon d={icons.plus} size={14} /> Add
+            </button>
+          </div>
+          <div className="flex-1 py-2">
+            {resources.map((resource) => (
+              <SortableResourceItem
+                key={resource._id}
+                resource={resource}
+                onEdit={onEdit}
+                onDelete={onDelete}
+              />
             ))}
-            {(onEdit || onDelete) && (
-              <td className="px-4 py-3 text-right whitespace-nowrap">
-                <div className="flex gap-1.5 justify-end">
-                  {onEdit && (
-                    <button
-                      onClick={() => onEdit(row)}
-                      className="bg-black/10 border-none rounded p-1.5 cursor-pointer text-light-text-muted hover:bg-black/20"
-                    >
-                      <Icon d={icons.edit} size={14} />
-                    </button>
-                  )}
-                  {onDelete && (
-                    <button
-                      onClick={() => onDelete(row)}
-                      className="bg-red-100 border-none rounded p-1.5 cursor-pointer text-red-400 hover:bg-red-200"
-                    >
-                      <Icon d={icons.trash} size={14} />
-                    </button>
-                  )}
-                </div>
-              </td>
-            )}
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-);
+          </div>
+        </div>
+      </SortableContext>
+    </DndContext>
+  );
+};
 
 // ---------- Modal ----------
 const Modal = ({ isOpen, onClose, title, children }) => {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 relative">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold">{title}</h3>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 relative animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-5 sticky top-0 bg-white py-2">
+          <h3 className="text-xl font-bold text-gray-800">{title}</h3>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
@@ -158,16 +235,15 @@ export const NAOResources = ({ accent = "#3b82f6", id: siteId }) => {
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingResource, setEditingResource] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState("For Schools");
   const [formData, setFormData] = useState({
     title: "",
     category: "For Schools",
-    status: "TBD",
     order: 0,
   });
   const [file, setFile] = useState(null);
   const [error, setError] = useState("");
 
-  // Category options from model
   const categories = [
     "For Schools",
     "For Students",
@@ -175,7 +251,13 @@ export const NAOResources = ({ accent = "#3b82f6", id: siteId }) => {
     "Media Resources",
   ];
 
-  // Fetch resources
+  const resourcesByCategory = categories.reduce((acc, cat) => {
+    acc[cat] = resources
+      .filter((r) => r.category === cat)
+      .sort((a, b) => a.order - b.order);
+    return acc;
+  }, {});
+
   const fetchResources = async () => {
     if (!siteId) return;
     setLoading(true);
@@ -195,75 +277,96 @@ export const NAOResources = ({ accent = "#3b82f6", id: siteId }) => {
     fetchResources();
   }, [siteId]);
 
-  const resetModal = () => {
-    setFormData({
-      title: "",
-      category: "For Schools",
-      status: "TBD",
-      order: 0,
+  const updateOrderForCategory = async (category, reorderedResources) => {
+    const updates = reorderedResources.map((r, idx) => ({
+      _id: r._id,
+      order: idx,
+    }));
+    if (updates.length === 0) return;
+    setResources((prev) => {
+      const other = prev.filter((r) => r.category !== category);
+      const updated = reorderedResources.map((r, idx) => ({
+        ...r,
+        order: idx,
+      }));
+      return [...other, ...updated];
     });
+    try {
+      const res = await fetch(`/api/${siteId}/resources/reorder`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ category, updates }),
+      });
+      if (!res.ok) throw new Error("Reorder failed");
+    } catch (err) {
+      console.error(err);
+      fetchResources();
+    }
+  };
+
+  const resetModal = () => {
+    setFormData({ title: "", category: selectedCategory, order: 0 });
     setFile(null);
     setEditingResource(null);
     setError("");
   };
 
-  const openCreateModal = () => {
-    resetModal();
+  const openCreateModal = (category = "For Schools") => {
+    setSelectedCategory(category);
+    setFormData({ title: "", category, order: 0 });
+    setFile(null);
+    setEditingResource(null);
+    setError("");
     setModalOpen(true);
   };
 
   const openEditModal = (resource) => {
     setEditingResource(resource);
+    setSelectedCategory(resource.category);
     setFormData({
       title: resource.title,
       category: resource.category,
-      status: resource.status,
       order: resource.order || 0,
     });
     setFile(null);
+    setError("");
     setModalOpen(true);
   };
-
+  
   const handleDelete = async (resource) => {
-    if (!confirm("Are you sure you want to delete this resource?")) return;
+    const confirmed = await confirmDelete(
+      `Delete "${resource.title}"? This action cannot be undone.`,
+    );
+    if (!confirmed) return;
+
     try {
       const res = await fetch(`/api/${siteId}/resources/${resource._id}`, {
         method: "DELETE",
       });
       const json = await res.json();
-      if (json.success) fetchResources();
-      else alert(json.message);
+      if (json.success) {
+        fetchResources();
+        showToast("Resource deleted successfully");
+      } else {
+        showToast(json.message, "error");
+      }
     } catch (err) {
-      alert("Delete failed");
+      showToast("Delete failed", "error");
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
     if (!formData.title || !formData.category) {
       setError("Title and category are required");
       return;
-    }
-
-    // Validate file requirement based on status
-    if (formData.status === "Available") {
-      if (!editingResource && (!file || file.size === 0)) {
-        setError("When status is 'Available', a file is required.");
-        return;
-      }
-      if (editingResource && !file && !editingResource.fileId) {
-        setError("When status is 'Available', a file is required.");
-        return;
-      }
     }
 
     const payload = new FormData();
     payload.append("title", formData.title);
     payload.append("category", formData.category);
     payload.append("siteId", siteId);
-    payload.append("status", formData.status);
     payload.append("order", formData.order.toString());
     if (file) payload.append("file", file);
 
@@ -289,62 +392,40 @@ export const NAOResources = ({ accent = "#3b82f6", id: siteId }) => {
     }
   };
 
-  // Table columns
-  const columns = [
-    {
-      key: "thumbnail",
-      label: "File",
-      render: (_, row) => (
-        <div className="w-10 h-10 rounded-md overflow-hidden bg-gray-100 flex items-center justify-center">
-          {row.fileId ? (
-            <img
-              src={`/api/files/${row.fileId}`}
-              alt={row.title}
-              className="w-full h-full object-cover"
-              onError={(e) => (e.target.style.display = "none")}
-            />
-          ) : (
-            <div className="text-gray-400">
-              <Icon d={icons.file} size={20} />
-            </div>
-          )}
-        </div>
-      ),
-    },
-    { key: "title", label: "Resource" },
-    {
-      key: "category",
-      label: "Category",
-      render: (v) => (
-        <span className="text-xs font-medium text-gray-600">{v}</span>
-      ),
-    },
-    {
-      key: "status",
-      label: "Status",
-      render: (v) => <Badge status={v} />,
-    },
-    { key: "order", label: "Order" },
-  ];
-
   return (
-    <>
-      <SectionHeader
-        title="Resources"
-        count={resources.length}
-        accent={accent}
-        onAdd={openCreateModal}
-      />
+    <div className="w-full mx-auto p-6 bg-white rounded-2xl shadow-sm">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-yellow-600">
+          Downloadable Resources
+        </h1>
+        <button
+          onClick={() => openCreateModal()}
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm transition"
+        >
+          <Icon d={icons.plus} size={16} /> Add Resource
+        </button>
+      </div>
+
       {loading ? (
-        <div className="text-center py-8">Loading...</div>
+        <div className="flex justify-center py-16">
+          <div className="animate-pulse text-gray-400">
+            Loading resources...
+          </div>
+        </div>
       ) : (
-        <DataTable
-          accent={accent}
-          columns={columns}
-          rows={resources}
-          onEdit={openEditModal}
-          onDelete={handleDelete}
-        />
+        <div className="grid md:grid-cols-4 gap-6">
+          {categories.map((cat) => (
+            <CategorySection
+              key={cat}
+              category={cat}
+              resources={resourcesByCategory[cat] || []}
+              onEdit={openEditModal}
+              onDelete={handleDelete}
+              onAdd={openCreateModal}
+              onReorder={updateOrderForCategory}
+            />
+          ))}
+        </div>
       )}
 
       <Modal
@@ -352,55 +433,39 @@ export const NAOResources = ({ accent = "#3b82f6", id: siteId }) => {
         onClose={() => setModalOpen(false)}
         title={editingResource ? "Edit Resource" : "Add New Resource"}
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium mb-1">Title *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Title *
+            </label>
             <input
               type="text"
               value={formData.title}
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
               }
-              className="w-full border rounded-lg px-3 py-2 text-sm"
+              className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Category *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Category *
+            </label>
             <select
               value={formData.category}
               onChange={(e) =>
                 setFormData({ ...formData, category: e.target.value })
               }
-              className="w-full border rounded-lg px-3 py-2 text-sm"
+              className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm"
             >
               {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
+                <option key={cat}>{cat}</option>
               ))}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Status</label>
-            <select
-              value={formData.status}
-              onChange={(e) =>
-                setFormData({ ...formData, status: e.target.value })
-              }
-              className="w-full border rounded-lg px-3 py-2 text-sm"
-            >
-              <option value="TBD">TBD</option>
-              <option value="Available">Available</option>
-            </select>
-            {formData.status === "Available" && (
-              <p className="text-xs text-amber-600 mt-1">
-                File is required when status is Available.
-              </p>
-            )}
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Order (optional)
             </label>
             <input
@@ -412,20 +477,17 @@ export const NAOResources = ({ accent = "#3b82f6", id: siteId }) => {
                   order: parseInt(e.target.value) || 0,
                 })
               }
-              className="w-full border rounded-lg px-3 py-2 text-sm"
+              className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">
-              File{" "}
-              {formData.status === "Available" && !editingResource
-                ? "*"
-                : "(optional)"}
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              File (optional)
             </label>
             <input
               type="file"
               onChange={(e) => setFile(e.target.files[0])}
-              className="w-full text-sm"
+              className="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700"
             />
             {editingResource && editingResource.fileId && (
               <p className="text-xs text-gray-500 mt-1">
@@ -433,26 +495,23 @@ export const NAOResources = ({ accent = "#3b82f6", id: siteId }) => {
                 to replace.
               </p>
             )}
-            {editingResource &&
-              !editingResource.fileId &&
-              formData.status === "Available" && (
-                <p className="text-xs text-red-500 mt-1">
-                  A file is required because status is Available.
-                </p>
-              )}
           </div>
-          {error && <div className="text-red-500 text-sm">{error}</div>}
-          <div className="flex justify-end gap-2 pt-2">
+          {error && (
+            <div className="text-red-500 text-sm bg-red-50 p-2 rounded-lg">
+              {error}
+            </div>
+          )}
+          <div className="flex justify-end gap-3 pt-3">
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="px-4 py-2 border rounded-lg text-sm"
+              className="px-5 py-2 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded-lg text-sm text-white"
+              className="px-5 py-2 rounded-xl text-sm font-medium text-white shadow-sm hover:opacity-90"
               style={{ backgroundColor: accent }}
             >
               {editingResource ? "Update" : "Create"}
@@ -460,6 +519,6 @@ export const NAOResources = ({ accent = "#3b82f6", id: siteId }) => {
           </div>
         </form>
       </Modal>
-    </>
+    </div>
   );
 };
