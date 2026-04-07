@@ -1,20 +1,43 @@
-
 import connectDB from "@/lib/mongodb";
 import { initGridFS, getBucket } from "@/lib/gridfs";
 import Blog from "@/models/NAO/Blog";
 import mongoose from "mongoose";
 
-// GET /api/blog?siteId=...&status=...&sort=...
+// Helper to parse tags from FormData
+function parseTags(formData) {
+  // Method 1: send as comma-separated string e.g. "tag1,tag2"
+  const tagsString = formData.get("tags");
+  if (tagsString && typeof tagsString === "string") {
+    return tagsString
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+  }
+  // Method 2: send as repeated fields tags[]=tag1&tags[]=tag2
+  const tagsArray = formData.getAll("tags[]");
+  if (tagsArray && tagsArray.length) {
+    return tagsArray.filter((t) => t && t.trim()).map((t) => t.trim());
+  }
+  return [];
+}
+
+// GET /api/nao/blogs?siteId=...&status=...&sort=...
 export async function GET(req) {
   await connectDB();
   const { searchParams } = new URL(req.url);
   const siteId = searchParams.get("siteId");
   const status = searchParams.get("status");
-  const sortBy = searchParams.get("sort") || "order"; // order, createdAt, etc.
+  const sortBy = searchParams.get("sort") || "order";
+  const tags = searchParams.get("tags")
 
   const filter = {};
   if (siteId) filter.siteId = siteId;
-  if (status && ["draft", "published", "archived"].includes(status)) filter.status = status;
+  if (status && ["draft", "published", "archived"].includes(status))
+    filter.status = status;
+ if (tags) {
+  const tagsArray = tags.split(",").map(t => t.trim());
+  filter.tags = { $in: tagsArray };
+}
 
   let sortOptions = {};
   if (sortBy === "order") sortOptions = { order: 1, createdAt: -1 };
@@ -22,13 +45,11 @@ export async function GET(req) {
   else if (sortBy === "oldest") sortOptions = { createdAt: 1 };
   else sortOptions = { order: 1, createdAt: -1 };
 
-  const blogs = await Blog.find(filter)
-    .populate("siteId", "name")
-    .sort(sortOptions);
+  const blogs = await Blog.find(filter).sort(sortOptions);
   return Response.json({ success: true, data: blogs });
 }
 
-// POST /api/blog
+// POST /api/nao/blogs
 export async function POST(req) {
   try {
     await connectDB();
@@ -41,24 +62,22 @@ export async function POST(req) {
     const status = formData.get("status") || "draft";
     const order = formData.get("order");
     const file = formData.get("imageFile"); // optional
+    const tags = parseTags(formData);
 
     // Validation
     if (!title || !siteId) {
       return Response.json(
         { success: false, message: "Title and siteId are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
-    // if (!mongoose.Types.ObjectId.isValid(siteId)) {
-    //   return Response.json(
-    //     { success: false, message: "Invalid siteId" },
-    //     { status: 400 }
-    //   );
-    // }
     if (status && !["draft", "published", "archived"].includes(status)) {
       return Response.json(
-        { success: false, message: "Status must be draft, published, or archived" },
-        { status: 400 }
+        {
+          success: false,
+          message: "Status must be draft, published, or archived",
+        },
+        { status: 400 },
       );
     }
 
@@ -84,6 +103,7 @@ export async function POST(req) {
       status,
       order: order ? parseInt(order) : 0,
       imageFileId,
+      tags,
     });
 
     return Response.json({ success: true, data: blog }, { status: 201 });
@@ -91,7 +111,7 @@ export async function POST(req) {
     console.error(error);
     return Response.json(
       { success: false, message: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -23,7 +23,8 @@ const icons = {
   edit: "M16.5 3.5L20.5 7.5M4 20L7.5 19L18.5 8L20.5 6L16.5 2L14.5 4L3.5 15L4 20Z",
   trash:
     "M4 7h16M10 11v6M14 11v6M5 7l1 13a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-13M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3",
-  grip: "M3 12h18M3 6h18M3 18h18",
+  grip: "M8 6a1 1 0 1 1 0 2a1 1 0 0 1 0-2zm0 5a1 1 0 1 1 0 2a1 1 0 0 1 0-2zm0 5a1 1 0 1 1 0 2a1 1 0 0 1 0-2zm8-10a1 1 0 1 1 0 2a1 1 0 0 1 0-2zm0 5a1 1 0 1 1 0 2a1 1 0 0 1 0-2zm0 5a1 1 0 1 1 0 2a1 1 0 0 1 0-2z",
+
   file: "M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z M13 2v7h7",
   download: "M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4 M7 10l5 5 5-5 M12 15V3",
 };
@@ -208,8 +209,8 @@ const CategorySection = ({
   );
 };
 
-// ---------- Modal ----------
-const Modal = ({ isOpen, onClose, title, children }) => {
+// ---------- Modal (updated to accept isSubmitting) ----------
+const Modal = ({ isOpen, onClose, title, children, isSubmitting }) => {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -218,7 +219,8 @@ const Modal = ({ isOpen, onClose, title, children }) => {
           <h3 className="text-xl font-bold text-gray-800">{title}</h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+            disabled={isSubmitting}
+            className="text-gray-400 hover:text-gray-600 text-2xl leading-none disabled:opacity-50"
           >
             ×
           </button>
@@ -243,6 +245,7 @@ export const NAOResources = ({ accent = "#3b82f6", id: siteId }) => {
   });
   const [file, setFile] = useState(null);
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false); // ADDED
 
   const categories = [
     "For Schools",
@@ -275,7 +278,7 @@ export const NAOResources = ({ accent = "#3b82f6", id: siteId }) => {
 
   useEffect(() => {
     fetchResources();
-  }, [siteId]);
+  }, []);
 
   const updateOrderForCategory = async (category, reorderedResources) => {
     const updates = reorderedResources.map((r, idx) => ({
@@ -332,7 +335,7 @@ export const NAOResources = ({ accent = "#3b82f6", id: siteId }) => {
     setError("");
     setModalOpen(true);
   };
-  
+
   const handleDelete = async (resource) => {
     const confirmed = await confirmDelete(
       `Delete "${resource.title}"? This action cannot be undone.`,
@@ -357,11 +360,14 @@ export const NAOResources = ({ accent = "#3b82f6", id: siteId }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return; // Prevent double submission
     setError("");
     if (!formData.title || !formData.category) {
       setError("Title and category are required");
       return;
     }
+
+    setIsSubmitting(true); // Disable button
 
     const payload = new FormData();
     payload.append("title", formData.title);
@@ -389,6 +395,8 @@ export const NAOResources = ({ accent = "#3b82f6", id: siteId }) => {
       }
     } catch (err) {
       setError("Network error");
+    } finally {
+      setIsSubmitting(false); // Re-enable button
     }
   };
 
@@ -430,8 +438,9 @@ export const NAOResources = ({ accent = "#3b82f6", id: siteId }) => {
 
       <Modal
         isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={() => !isSubmitting && setModalOpen(false)}
         title={editingResource ? "Edit Resource" : "Add New Resource"}
+        isSubmitting={isSubmitting}
       >
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
@@ -446,6 +455,7 @@ export const NAOResources = ({ accent = "#3b82f6", id: siteId }) => {
               }
               className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500"
               required
+              disabled={isSubmitting}
             />
           </div>
           <div>
@@ -458,6 +468,7 @@ export const NAOResources = ({ accent = "#3b82f6", id: siteId }) => {
                 setFormData({ ...formData, category: e.target.value })
               }
               className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm"
+              disabled={isSubmitting}
             >
               {categories.map((cat) => (
                 <option key={cat}>{cat}</option>
@@ -478,6 +489,7 @@ export const NAOResources = ({ accent = "#3b82f6", id: siteId }) => {
                 })
               }
               className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm"
+              disabled={isSubmitting}
             />
           </div>
           <div>
@@ -488,6 +500,7 @@ export const NAOResources = ({ accent = "#3b82f6", id: siteId }) => {
               type="file"
               onChange={(e) => setFile(e.target.files[0])}
               className="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700"
+              disabled={isSubmitting}
             />
             {editingResource && editingResource.fileId && (
               <p className="text-xs text-gray-500 mt-1">
@@ -504,17 +517,25 @@ export const NAOResources = ({ accent = "#3b82f6", id: siteId }) => {
           <div className="flex justify-end gap-3 pt-3">
             <button
               type="button"
-              onClick={() => setModalOpen(false)}
-              className="px-5 py-2 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50"
+              onClick={() => !isSubmitting && setModalOpen(false)}
+              disabled={isSubmitting}
+              className="px-5 py-2 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl text-sm font-medium text-white shadow-sm hover:opacity-90"
+              disabled={isSubmitting}
+              className="px-5 py-2 rounded-xl text-sm font-medium text-white shadow-sm hover:opacity-90 disabled:opacity-50"
               style={{ backgroundColor: accent }}
             >
-              {editingResource ? "Update" : "Create"}
+              {isSubmitting
+                ? editingResource
+                  ? "Updating..."
+                  : "Creating..."
+                : editingResource
+                  ? "Update"
+                  : "Create"}
             </button>
           </div>
         </form>

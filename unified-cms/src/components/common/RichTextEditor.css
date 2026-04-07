@@ -8,6 +8,7 @@
   overflow: hidden;
   background: #fff;
   transition: border-color 0.2s, box-shadow 0.2s;
+  height: 100%;
 }
 .rte-container:focus-within {
   border-color: #6366f1;
@@ -243,6 +244,7 @@
 /* ─── Editor content area ─── */
 .rte-content {
   min-height: 120px;
+  height: 100%;
 }
 
 .rte-content .tiptap {

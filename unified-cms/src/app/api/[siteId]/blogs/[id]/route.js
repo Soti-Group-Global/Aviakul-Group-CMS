@@ -4,19 +4,28 @@ import Blog from "@/models/NAO/Blog";
 import mongoose from "mongoose";
 import { ObjectId } from "mongodb";
 
-// GET /api/blog/[id]
+// Helper to parse tags from FormData (same as above)
+function parseTags(formData) {
+  const tagsString = formData.get("tags");
+  if (tagsString && typeof tagsString === "string") {
+    return tagsString
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+  }
+  const tagsArray = formData.getAll("tags[]");
+  if (tagsArray && tagsArray.length) {
+    return tagsArray.filter((t) => t && t.trim()).map((t) => t.trim());
+  }
+  return [];
+}
+
+// GET /api/nao/blog/[id]
 export async function GET(req, { params }) {
   await connectDB();
   const { id } = await params;
 
-  // if (!mongoose.Types.ObjectId.isValid(id)) {
-  //   return Response.json(
-  //     { success: false, message: "Invalid ID" },
-  //     { status: 400 },
-  //   );
-  // }
-
-  const blog = await Blog.findById(id).populate("siteId", "name");
+  const blog = await Blog.findById(id);
   if (!blog) {
     return Response.json(
       { success: false, message: "Blog not found" },
@@ -27,19 +36,12 @@ export async function GET(req, { params }) {
   return Response.json({ success: true, data: blog });
 }
 
-// PUT /api/blog/[id]
+// PUT /api/nao/blog/[id]
 export async function PUT(req, { params }) {
   try {
     await connectDB();
     initGridFS();
     const { id } = await params;
-
-    // if (!mongoose.Types.ObjectId.isValid(id)) {
-    //   return Response.json(
-    //     { success: false, message: "Invalid ID" },
-    //     { status: 400 },
-    //   );
-    // }
 
     const formData = await req.formData();
     const title = formData.get("title");
@@ -48,6 +50,7 @@ export async function PUT(req, { params }) {
     const status = formData.get("status");
     const order = formData.get("order");
     const file = formData.get("imageFile"); // optional
+    const tags = parseTags(formData);
 
     const existingBlog = await Blog.findById(id);
     if (!existingBlog) {
@@ -57,13 +60,6 @@ export async function PUT(req, { params }) {
       );
     }
 
-    // // Validate fields if provided
-    // if (siteId && !mongoose.Types.ObjectId.isValid(siteId)) {
-    //   return Response.json(
-    //     { success: false, message: "Invalid siteId" },
-    //     { status: 400 },
-    //   );
-    // }
     if (status && !["draft", "published", "archived"].includes(status)) {
       return Response.json(
         {
@@ -111,6 +107,7 @@ export async function PUT(req, { params }) {
     if (status !== null) updateData.status = status;
     if (order !== null) updateData.order = parseInt(order);
     updateData.imageFileId = imageFileId;
+    if (tags.length) updateData.tags = tags; // only update if tags were sent
 
     const updatedBlog = await Blog.findByIdAndUpdate(id, updateData, {
       new: true,
@@ -127,19 +124,12 @@ export async function PUT(req, { params }) {
   }
 }
 
-// DELETE /api/blog/[id]
+// DELETE /api/nao/blog/[id]
 export async function DELETE(req, { params }) {
   try {
     await connectDB();
     initGridFS();
     const { id } = await params;
-
-    // if (!mongoose.Types.ObjectId.isValid(id)) {
-    //   return Response.json(
-    //     { success: false, message: "Invalid ID" },
-    //     { status: 400 },
-    //   );
-    // }
 
     const blog = await Blog.findById(id);
     if (!blog) {

@@ -26,6 +26,12 @@ const BlogSchema = new mongoose.Schema(
       enum: ["draft", "published", "archived"],
       default: "draft",
     },
+    tags:[
+      {
+        type:String,
+        trim:true
+      }
+    ],
     order: {
       type: Number,
       default: 0,

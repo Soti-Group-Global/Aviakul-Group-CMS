@@ -3,6 +3,10 @@ import { initGridFS, getBucket } from "@/lib/gridfs";
 import Partner from "@/models/NAO/Partner";
 import mongoose from "mongoose";
 
+import { corsHeaders } from "@/lib/cors";
+
+const ORIGIN = "http://localhost:3001";
+
 // GET /api/partner?siteId=...&category=...
 export async function GET(req) {
   await connectDB();
@@ -17,7 +21,10 @@ export async function GET(req) {
   const partners = await Partner.find(filter)
     // .populate("siteId", "name")
     .sort({ order: 1, createdAt: -1 });
-  return Response.json({ success: true, data: partners });
+
+  return new Response(JSON.stringify({ success: true, data: partners }), {
+    headers: corsHeaders(ORIGIN),
+  });
 }
 
 // POST /api/partner

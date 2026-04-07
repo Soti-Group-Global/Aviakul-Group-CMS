@@ -3,22 +3,43 @@ import { initGridFS, getBucket } from "@/lib/gridfs";
 import Expert from "@/models/NAO/Expert";
 import mongoose from "mongoose";
 
-// GET /api/expert
-export async function GET() {
-  console.log("👉 [GET /api/expert] Request received");
+// GET /api/nao/experts?limit=20&page=1
+export async function GET(req) {
+  console.log("👉 [GET /api/nao/experts] Request received");
 
   await connectDB();
-  console.log("✅ DB connected");
 
-  const experts = await Expert.find()
-    // .populate("siteId", "name")
-    .sort({ createdAt: -1 });
 
+  // Parse query parameters
+  const url = new URL(req.url);
+  const limitParam = url.searchParams.get("limit");
+  const pageParam = url.searchParams.get("page");
+
+  // Default limit = 100 (to avoid returning thousands of docs accidentally)
+  // Use limit=0 to get all documents (no limit)
+  let limit = limitParam ? parseInt(limitParam, 10) : 100;
+  const page = pageParam ? parseInt(pageParam, 10) : 1;
+
+  let query = Expert.find().sort({ createdAt: -1 });
+
+  // Apply limit and skip only if limit > 0
+  if (limit > 0) {
+    const skip = (page - 1) * limit;
+    query = query.skip(skip).limit(limit);
+  }
+
+  const experts = await query;
   console.log(`📦 Experts fetched: ${experts.length}`);
 
-  return Response.json({ success: true, data: experts });
-}
+  // Optional: return total count for pagination (useful for frontend)
+  const total = limit > 0 ? await Expert.countDocuments() : experts.length;
 
+  return Response.json({
+    success: true,
+    data: experts,
+    pagination: limit > 0 ? { page, limit, total } : undefined,
+  });
+}
 // POST /api/expert
 export async function POST(req) {
   console.log("👉 [POST /api/expert] Request started");

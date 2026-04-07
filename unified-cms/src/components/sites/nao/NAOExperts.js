@@ -117,8 +117,8 @@ const DataTable = ({ columns, rows, accent, onEdit, onDelete }) => (
   </div>
 );
 
-// ---------- Modal ----------
-const Modal = ({ isOpen, onClose, title, children }) => {
+// ---------- Modal (updated to accept isSubmitting) ----------
+const Modal = ({ isOpen, onClose, title, children, isSubmitting }) => {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -127,7 +127,8 @@ const Modal = ({ isOpen, onClose, title, children }) => {
           <h3 className="text-xl font-semibold">{title}</h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+            disabled={isSubmitting}
+            className="text-gray-400 hover:text-gray-600 text-2xl leading-none disabled:opacity-50"
           >
             ×
           </button>
@@ -152,6 +153,7 @@ export const NAOExperts = ({ accent = "#3b82f6", id }) => {
   });
   const [profileFile, setProfileFile] = useState(null);
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false); // ADDED
 
   // Fetch experts: GET /api/{id}/experts?siteId={id}
   const fetchExperts = async () => {
@@ -171,7 +173,7 @@ export const NAOExperts = ({ accent = "#3b82f6", id }) => {
 
   useEffect(() => {
     fetchExperts();
-  }, [id]);
+  }, []);
 
   const resetModal = () => {
     setFormData({ name: "", designation: "", organization: "", location: "" });
@@ -221,6 +223,7 @@ export const NAOExperts = ({ accent = "#3b82f6", id }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return; 
     setError("");
 
     if (
@@ -236,6 +239,8 @@ export const NAOExperts = ({ accent = "#3b82f6", id }) => {
       setError("Profile image is required for new expert");
       return;
     }
+
+    setIsSubmitting(true); 
 
     const payload = new FormData();
     payload.append("name", formData.name);
@@ -266,6 +271,8 @@ export const NAOExperts = ({ accent = "#3b82f6", id }) => {
       }
     } catch (err) {
       setError("Network error");
+    } finally {
+      setIsSubmitting(false); 
     }
   };
 
@@ -319,8 +326,9 @@ export const NAOExperts = ({ accent = "#3b82f6", id }) => {
 
       <Modal
         isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={() => !isSubmitting && setModalOpen(false)}
         title={editingExpert ? "Edit Expert" : "Add New Expert"}
+        isSubmitting={isSubmitting}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -333,6 +341,7 @@ export const NAOExperts = ({ accent = "#3b82f6", id }) => {
               }
               className="w-full border rounded-lg px-3 py-2 text-sm"
               required
+              disabled={isSubmitting}
             />
           </div>
           <div>
@@ -347,6 +356,7 @@ export const NAOExperts = ({ accent = "#3b82f6", id }) => {
               }
               className="w-full border rounded-lg px-3 py-2 text-sm"
               required
+              disabled={isSubmitting}
             />
           </div>
           <div>
@@ -361,6 +371,7 @@ export const NAOExperts = ({ accent = "#3b82f6", id }) => {
               }
               className="w-full border rounded-lg px-3 py-2 text-sm"
               required
+              disabled={isSubmitting}
             />
           </div>
           <div>
@@ -373,6 +384,7 @@ export const NAOExperts = ({ accent = "#3b82f6", id }) => {
               }
               className="w-full border rounded-lg px-3 py-2 text-sm"
               required
+              disabled={isSubmitting}
             />
           </div>
           <div>
@@ -384,6 +396,7 @@ export const NAOExperts = ({ accent = "#3b82f6", id }) => {
               accept="image/*"
               onChange={(e) => setProfileFile(e.target.files[0])}
               className="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              disabled={isSubmitting}
             />
             {editingExpert && (
               <p className="text-xs text-gray-500 mt-1">
@@ -396,17 +409,25 @@ export const NAOExperts = ({ accent = "#3b82f6", id }) => {
           <div className="flex justify-end gap-2 pt-2">
             <button
               type="button"
-              onClick={() => setModalOpen(false)}
-              className="px-4 py-2 border rounded-lg text-sm"
+              onClick={() => !isSubmitting && setModalOpen(false)}
+              disabled={isSubmitting}
+              className="px-4 py-2 border rounded-lg text-sm disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded-lg text-sm text-white"
+              disabled={isSubmitting}
+              className="px-4 py-2 rounded-lg text-sm text-white disabled:opacity-50"
               style={{ backgroundColor: accent }}
             >
-              {editingExpert ? "Update" : "Create"}
+              {isSubmitting
+                ? editingExpert
+                  ? "Updating..."
+                  : "Creating..."
+                : editingExpert
+                  ? "Update"
+                  : "Create"}
             </button>
           </div>
         </form>

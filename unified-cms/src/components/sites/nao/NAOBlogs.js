@@ -135,15 +135,18 @@ const DataTable = ({ columns, rows, accent, onEdit, onDelete }) => (
   </div>
 );
 
-// ---------- Filter Bar (light theme) ----------
+// ---------- Filter Bar (light theme) – with tag filter added ----------
 const FilterBar = ({
   statusFilter,
   setStatusFilter,
   sortBy,
   setSortBy,
+  tagFilter,
+  setTagFilter,
+  uniqueTags,
   accent,
 }) => (
-  <div className="flex gap-3 mb-5">
+  <div className="flex gap-3 mb-5 flex-wrap">
     <div className="relative">
       <select
         value={statusFilter}
@@ -173,20 +176,39 @@ const FilterBar = ({
         <Icon d={icons.chevronDown} size={12} />
       </div>
     </div>
+    {/* Tag filter dropdown */}
+    <div className="relative">
+      <select
+        value={tagFilter}
+        onChange={(e) => setTagFilter(e.target.value)}
+        className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        <option value="">All Tags</option>
+        {uniqueTags.map((tag) => (
+          <option key={tag} value={tag}>
+            {tag}
+          </option>
+        ))}
+      </select>
+      <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+        <Icon d={icons.chevronDown} size={12} />
+      </div>
+    </div>
   </div>
 );
 
 // ---------- Modal (already light friendly, keep as is) ----------
-const Modal = ({ isOpen, onClose, title, children }) => {
+const Modal = ({ isOpen, onClose, title, children, isSubmitting }) => {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 relative animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-6 md:p-0">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl p-5 relative animate-in fade-in zoom-in duration-200 max-h-[94vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-5 sticky top-0 bg-white py-2">
           <h3 className="text-xl font-bold text-gray-800">{title}</h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+            disabled={isSubmitting}
+            className="text-gray-400 hover:text-gray-600 text-2xl leading-none disabled:opacity-50"
           >
             ×
           </button>
@@ -209,10 +231,18 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
     status: "draft",
     order: 0,
   });
+  const [tagsInput, setTagsInput] = useState("");
   const [imageFile, setImageFile] = useState(null);
   const [error, setError] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("order");
+  const [tagFilter, setTagFilter] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Derive unique tags from blogs
+  const uniqueTags = Array.from(
+    new Set(blogs.flatMap((blog) => blog.tags || [])),
+  ).sort();
 
   const fetchBlogs = async () => {
     if (!siteId) return;
@@ -234,10 +264,18 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
 
   useEffect(() => {
     fetchBlogs();
-  }, [siteId, statusFilter, sortBy]);
+  }, [ statusFilter, sortBy]);
+
+  // Client‑side filtering (status already applied via API, but we keep status in filter for consistency)
+  const filteredBlogs = blogs.filter((blog) => {
+    // Tag filter
+    if (tagFilter && !(blog.tags || []).includes(tagFilter)) return false;
+    return true;
+  });
 
   const resetModal = () => {
     setFormData({ title: "", content: "", status: "draft", order: 0 });
+    setTagsInput("");
     setImageFile(null);
     setEditingBlog(null);
     setError("");
@@ -256,9 +294,11 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
       status: blog.status,
       order: blog.order || 0,
     });
+    setTagsInput((blog.tags || []).join(", "));
     setImageFile(null);
     setModalOpen(true);
   };
+
   const handleDelete = async (blog) => {
     const confirmed = await confirmDelete(
       `Delete "${blog.title}"? This action cannot be undone.`,
@@ -280,14 +320,18 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
       showToast("Delete failed", "error");
     }
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setError("");
 
     if (!formData.title) {
       setError("Title is required");
       return;
     }
+
+    setIsSubmitting(true);
 
     const payload = new FormData();
     payload.append("title", formData.title);
@@ -296,6 +340,14 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
     payload.append("status", formData.status);
     payload.append("order", formData.order.toString());
     if (imageFile) payload.append("imageFile", imageFile);
+
+    const tags = tagsInput
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+    if (tags.length) {
+      payload.append("tags", tags.join(","));
+    }
 
     try {
       let url, method;
@@ -316,6 +368,8 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
       }
     } catch (err) {
       setError("Network error");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -357,14 +411,28 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
       },
     },
     {
+      key: "tags",
+      label: "Tags",
+      render: (tags) => {
+        if (!tags || tags.length === 0) return "—";
+        return (
+          <div className="flex flex-col gap-2">
+            {tags.map((tag, i) => (
+              <span
+                key={i}
+                className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs whitespace-nowrap"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        );
+      },
+    },
+    {
       key: "status",
       label: "Status",
       render: (v) => <StatusBadge status={v} />,
-    },
-    {
-      key: "order",
-      label: "Order",
-      render: (v) => <span className="text-gray-600">{v}</span>,
     },
     {
       key: "createdAt",
@@ -381,7 +449,7 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
     <div className="w-full">
       <SectionHeader
         title="Blogs"
-        count={blogs.length}
+        count={filteredBlogs.length}
         accent={accent}
         onAdd={openCreateModal}
       />
@@ -390,23 +458,26 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
         setStatusFilter={setStatusFilter}
         sortBy={sortBy}
         setSortBy={setSortBy}
+        tagFilter={tagFilter}
+        setTagFilter={setTagFilter}
+        uniqueTags={uniqueTags}
         accent={accent}
       />
       {loading ? (
         <div className="flex justify-center py-16">
           <div className="animate-pulse text-gray-400">Loading blogs...</div>
         </div>
-      ) : blogs.length === 0 ? (
+      ) : filteredBlogs.length === 0 ? (
         <div className="text-center py-16 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
           <Icon d={icons.image} size={48} color="#9ca3af" />
           <p className="text-gray-400 mt-3">
-            No blogs yet. Click "Add Blog" to create one.
+            No blogs match the selected filters.
           </p>
         </div>
       ) : (
         <DataTable
           columns={columns}
-          rows={blogs}
+          rows={filteredBlogs}
           accent={accent}
           onEdit={openEditModal}
           onDelete={handleDelete}
@@ -415,8 +486,9 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
 
       <Modal
         isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={() => !isSubmitting && setModalOpen(false)}
         title={editingBlog ? "Edit Blog" : "Create New Blog"}
+        isSubmitting={isSubmitting}
       >
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
@@ -431,25 +503,20 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
               }
               className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
+              disabled={isSubmitting}
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Content
             </label>
-            <CommonRichTextEditor
-              value={formData.content}
-              onChange={(html) => setFormData({ ...formData, content: html })}
-            />
-            {/* <textarea
-              value={formData.content}
-              onChange={(e) =>
-                setFormData({ ...formData, content: e.target.value })
-              }
-              rows={3}
-              className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Short content..."
-            /> */}
+            <div className="resize-y overflow-auto min-h-[180px] max-h-[600px] border border-gray-200 rounded-lg">
+              <CommonRichTextEditor
+                value={formData.content}
+                onChange={(html) => setFormData({ ...formData, content: html })}
+                disabled={isSubmitting}
+              />
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -461,6 +528,7 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
                 setFormData({ ...formData, status: e.target.value })
               }
               className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm"
+              disabled={isSubmitting}
             >
               <option value="draft">Draft</option>
               <option value="published">Published</option>
@@ -469,18 +537,15 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Order (optional)
+              Tags (comma‑separated)
             </label>
             <input
-              type="number"
-              value={formData.order}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  order: parseInt(e.target.value) || 0,
-                })
-              }
-              className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm"
+              type="text"
+              value={tagsInput}
+              onChange={(e) => setTagsInput(e.target.value)}
+              placeholder="e.g. aviation, olympiad, science"
+              className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={isSubmitting}
             />
           </div>
           <div>
@@ -492,6 +557,7 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
               accept="image/*"
               onChange={(e) => setImageFile(e.target.files[0])}
               className="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              disabled={isSubmitting}
             />
             {editingBlog && editingBlog.imageFileId && (
               <p className="text-xs text-gray-400 mt-1">
@@ -507,17 +573,25 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
           <div className="flex justify-end gap-3 pt-3">
             <button
               type="button"
-              onClick={() => setModalOpen(false)}
-              className="px-5 py-2 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+              onClick={() => !isSubmitting && setModalOpen(false)}
+              disabled={isSubmitting}
+              className="px-5 py-2 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl text-sm font-medium text-white shadow-sm transition hover:opacity-90"
+              disabled={isSubmitting}
+              className="px-5 py-2 rounded-xl text-sm font-medium text-white shadow-sm transition hover:opacity-90 disabled:opacity-50"
               style={{ backgroundColor: accent }}
             >
-              {editingBlog ? "Update" : "Create"}
+              {isSubmitting
+                ? editingBlog
+                  ? "Updating..."
+                  : "Creating..."
+                : editingBlog
+                  ? "Update"
+                  : "Create"}
             </button>
           </div>
         </form>
