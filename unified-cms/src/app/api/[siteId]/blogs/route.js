@@ -22,10 +22,12 @@ function parseTags(formData) {
 }
 
 // GET /api/nao/blogs?siteId=...&status=...&sort=...
-export async function GET(req) {
+export async function GET(req,{params}) {
   await connectDB();
+  
+  const {siteId} = await params
+
   const { searchParams } = new URL(req.url);
-  const siteId = searchParams.get("siteId");
   const status = searchParams.get("status");
   const sortBy = searchParams.get("sort") || "order";
   const tags = searchParams.get("tags")

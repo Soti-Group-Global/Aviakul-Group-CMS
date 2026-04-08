@@ -25,12 +25,12 @@ export const SITES = {
     logo: "CSO",
     modules: [
       // { id: "dashboard", label: "Dashboard", icon: "home" },
-      { id: "blog", label: "Blog / News", icon: "blog" },
-      { id: "programs", label: "Programs", icon: "award" },
-      { id: "team", label: "Team Members", icon: "people" },
-      { id: "donations", label: "Donations", icon: "donation" },
-      { id: "inquiries", label: "Inquiries", icon: "inbox" },
-      { id: "settings", label: "Settings", icon: "settings" },
+      { id: "blog", label: "Blogs", icon: "blog" },
+      // { id: "programs", label: "Programs", icon: "award" },
+      // { id: "team", label: "Team Members", icon: "people" },
+      // { id: "donations", label: "Donations", icon: "donation" },
+      // { id: "inquiries", label: "Inquiries", icon: "inbox" },
+      // { id: "settings", label: "Settings", icon: "settings" },
     ],
   },
   nao: {

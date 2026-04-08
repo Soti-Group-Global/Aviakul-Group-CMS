@@ -248,7 +248,7 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
     if (!siteId) return;
     setLoading(true);
     try {
-      let url = `/api/${siteId}/blogs?siteId=${siteId}`;
+      let url = `/api/${siteId}/blogs?`;
       if (statusFilter !== "all") url += `&status=${statusFilter}`;
       if (sortBy) url += `&sort=${sortBy}`;
       const res = await fetch(url);
