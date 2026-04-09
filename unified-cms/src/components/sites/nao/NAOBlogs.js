@@ -220,7 +220,7 @@ const Modal = ({ isOpen, onClose, title, children, isSubmitting }) => {
 };
 
 // ---------- Main Component ----------
-export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
+export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
