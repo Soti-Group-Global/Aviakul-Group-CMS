@@ -7,12 +7,12 @@ if (!MONGODB_URI) {
   throw new Error("Please define MONGODB_URI");
 }
 
-// ✅ Fix global typing safely
+//  Fix global typing safely
 global.mongoose = global.mongoose || { conn: null, promise: null };
 
 let cached = global.mongoose;
 
-// ✅ Add flag
+//  Add flag
 let isSeeded = false;
 
 async function connectDB() {
@@ -28,7 +28,7 @@ async function connectDB() {
     console.log("✅ MongoDB connected");
   }
 
-  // ✅ Seed only once
+  //  Seed only once
   if (!isSeeded) {
     await seedAdmin();
     isSeeded = true;

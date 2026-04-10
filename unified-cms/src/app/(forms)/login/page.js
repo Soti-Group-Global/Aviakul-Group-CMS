@@ -1,6 +1,6 @@
 "use client";
 
-import { useState , useEffect} from "react";
+import { useState, useEffect } from "react";
 import { Mail, Lock, Eye, EyeOff, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -14,7 +14,6 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const loginToken = localStorage.getItem("token");
   const router = useRouter();
 
   const login = async () => {
@@ -40,37 +39,12 @@ export default function Login() {
         localStorage.setItem("adminEmail", data.user.email);
         localStorage.setItem("role", data.user.role);
       }
-      setStep("otp");
-    } catch (err) {
-      setError("Something went wrong");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const verify = async () => {
-    setError("");
-    if (!otp) {
-      setError("Enter OTP");
-      return;
-    }
-    try {
-      setLoading(true);
-      const res = await fetch("/api/auth/verify-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.message || "Invalid OTP");
-        return;
+      // Store tokens (matching verify-otp behavior)
+      if (data.accessToken) {
+        localStorage.setItem("token", data.accessToken);
       }
-      localStorage.setItem("token", data.accessToken);
-      if (data.user) {
-        localStorage.setItem("adminId", data.user.id);
-        localStorage.setItem("adminEmail", data.user.email);
-        localStorage.setItem("role", data.user.role);
+      if (data.refreshToken) {
+        localStorage.setItem("refreshToken", data.refreshToken);
       }
       router.replace("/cso/blogs");
     } catch (err) {
@@ -79,6 +53,72 @@ export default function Login() {
       setLoading(false);
     }
   };
+
+  // const login = async () => {
+  //   setError("");
+  //   if (!email || !password) {
+  //     setError("Email and password required");
+  //     return;
+  //   }
+  //   try {
+  //     setLoading(true);
+  //     const res = await fetch("/api/auth/login", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ email, password }),
+  //     });
+  //     const data = await res.json();
+  //     if (!res.ok) {
+  //       setError(data.message || "Invalid credentials");
+  //       return;
+  //     }
+  //     if (data.user) {
+  //       localStorage.setItem("adminId", data.user.id);
+  //       localStorage.setItem("adminEmail", data.user.email);
+  //       localStorage.setItem("role", data.user.role);
+  //     }
+  //     // OTP step is temporarily disabled (backend OTP code is commented)
+  //     // setStep("otp");
+  //     router.replace("/cso/blogs");
+  //   } catch (err) {
+  //     setError("Something went wrong");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  // verify function is kept but commented for future use
+  // const verify = async () => {
+  //   setError("");
+  //   if (!otp) {
+  //     setError("Enter OTP");
+  //     return;
+  //   }
+  //   try {
+  //     setLoading(true);
+  //     const res = await fetch("/api/auth/verify-otp", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ email, otp }),
+  //     });
+  //     const data = await res.json();
+  //     if (!res.ok) {
+  //       setError(data.message || "Invalid OTP");
+  //       return;
+  //     }
+  //     localStorage.setItem("token", data.accessToken);
+  //     if (data.user) {
+  //       localStorage.setItem("adminId", data.user.id);
+  //       localStorage.setItem("adminEmail", data.user.email);
+  //       localStorage.setItem("role", data.user.role);
+  //     }
+  //     router.replace("/cso/blogs");
+  //   } catch (err) {
+  //     setError("Something went wrong");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -92,18 +132,13 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-white px-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg border border-gray-100 p-8 transition-all duration-300">
         <h2 className="text-2xl font-bold text-center mb-2 text-gray-800">
-          {step === "login" ? "Admin Login" : "Verify OTP"}
+          {/* OTP step UI temporarily disabled - only login shown */}
+          Admin Login
         </h2>
-        {step === "login" ? (
-          <p className="text-center text-gray-500 text-sm mb-6">
-            Enter your credentials to access dashboard
-          </p>
-        ) : (
-          <p className="text-center text-gray-500 text-sm mb-6">
-            We've sent a 6-digit code to{" "}
-            <span className="font-medium text-indigo-600">{email}</span>
-          </p>
-        )}
+        {/* Only login description is shown; OTP description is commented out */}
+        <p className="text-center text-gray-500 text-sm mb-6">
+          Enter your credentials to access dashboard
+        </p>
 
         {error && (
           <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 p-3 rounded-lg">
@@ -111,78 +146,71 @@ export default function Login() {
           </div>
         )}
 
-        {step === "login" ? (
-          <>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email Address
-              </label>
-              <div className="relative">
-                <Mail
-                  className="absolute left-3 top-3 text-gray-400"
-                  size={18}
-                />
-                <input
-                  type="email"
-                  placeholder="admin@example.com"
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
+        {/* ========== LOGIN FORM (Always visible) ========== */}
+        <>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email Address
+            </label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
+              <input
+                type="email"
+                placeholder="admin@example.com"
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
             </div>
+          </div>
 
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Password
-              </label>
-              <div className="relative">
-                <Lock
-                  className="absolute left-3 top-3 text-gray-400"
-                  size={18}
-                />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-                <div
-                  className="absolute right-3 top-3 cursor-pointer text-gray-500 hover:text-gray-700"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={login}
-              disabled={loading}
-              className="w-full bg-indigo-600 text-white py-2.5 rounded-lg font-semibold 
-              hover:bg-indigo-700 active:scale-[0.98] transition-all duration-200 disabled:opacity-50"
-            >
-              {loading ? "Sending OTP..." : "Login"}
-            </button>
-
-            {/* Forgot password link */}
-            <div className="mt-4 text-center">
-              <Link
-                href="/forgot-password"
-                className="text-sm text-indigo-600 hover:text-indigo-700"
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Password
+            </label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <div
+                className="absolute right-3 top-3 cursor-pointer text-gray-500 hover:text-gray-700"
+                onClick={() => setShowPassword(!showPassword)}
               >
-                Forgot password?
-              </Link>
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </div>
             </div>
-          </>
-        ) : (
+          </div>
+
+          <button
+            onClick={login}
+            disabled={loading}
+            className="w-full bg-indigo-600 text-white py-2.5 rounded-lg font-semibold 
+              hover:bg-indigo-700 active:scale-[0.98] transition-all duration-200 disabled:opacity-50"
+          >
+            {loading ? "Logging in..." : "Login"}
+          </button>
+
+          <div className="mt-4 text-center">
+            <Link
+              href="/forgot-password"
+              className="text-sm text-indigo-600 hover:text-indigo-700"
+            >
+              Forgot password?
+            </Link>
+          </div>
+        </>
+
+        {/* ========== OTP UI (Commented out - kept for future use) ========== */}
+        {/*
+        {step === "otp" && (
           <>
             <div className="mb-4 p-3 bg-blue-50 rounded-lg flex items-start gap-2">
-              <ShieldCheck
-                className="text-blue-600 flex-shrink-0 mt-0.5"
-                size={18}
-              />
+              <ShieldCheck className="text-blue-600 flex-shrink-0 mt-0.5" size={18} />
               <p className="text-sm text-blue-800">
                 A 6-digit verification code has been sent to your email address.
                 It will expire in 5 minutes.
@@ -223,6 +251,7 @@ export default function Login() {
             </div>
           </>
         )}
+        */}
       </div>
     </div>
   );
