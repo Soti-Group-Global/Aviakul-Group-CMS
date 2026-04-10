@@ -1,6 +1,7 @@
-// src/app/layout.js
+// app/layout.js
 
 import "./globals.css";
+import AuthWrapper from "@/components/AuthWrapper";
 
 export const metadata = {
   title: "Unified CMS",
@@ -12,11 +13,13 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <head>
         <link
-          href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Space+Mono:wght@400;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&family=Space+Mono:wght@400;700&display=swap"
           rel="stylesheet"
         />
       </head>
-      <body className="bg-white text-light-text font-sans">{children}</body>
+      <body className="bg-white text-light-text font-sans">
+        <AuthWrapper>{children}</AuthWrapper>
+      </body>
     </html>
   );
 }

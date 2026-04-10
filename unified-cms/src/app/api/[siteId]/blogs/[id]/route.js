@@ -20,12 +20,14 @@ function parseTags(formData) {
   return [];
 }
 
-// GET /api/nao/blog/[id]
+// GET /api/nao/blogs/[id]
 export async function GET(req, { params }) {
   await connectDB();
+
   const { id } = await params;
 
   const blog = await Blog.findById(id);
+
   if (!blog) {
     return Response.json(
       { success: false, message: "Blog not found" },
@@ -33,7 +35,23 @@ export async function GET(req, { params }) {
     );
   }
 
-  return Response.json({ success: true, data: blog });
+  let filename = null;
+
+  if (blog.imageFileId) {
+    const file = await mongoose.connection.db
+      .collection("fs.files")
+      .findOne({ _id: blog.imageFileId });
+
+    filename = file?.filename || null;
+  }
+
+  return Response.json({
+    success: true,
+    data: {
+      ...blog._doc,
+      imageFilename: filename,
+    },
+  });
 }
 
 // PUT /api/nao/blog/[id]
@@ -49,7 +67,7 @@ export async function PUT(req, { params }) {
     const siteId = formData.get("siteId");
     const status = formData.get("status");
     const order = formData.get("order");
-    const file = formData.get("imageFile"); // optional
+    const file = formData.get("imageFile");
     const tags = parseTags(formData);
 
     const existingBlog = await Blog.findById(id);

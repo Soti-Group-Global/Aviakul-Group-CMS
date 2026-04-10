@@ -238,40 +238,61 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
   const [sortBy, setSortBy] = useState("order");
   const [tagFilter, setTagFilter] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
 
   // Derive unique tags from blogs
   const uniqueTags = Array.from(
     new Set(blogs.flatMap((blog) => blog.tags || [])),
   ).sort();
 
-  const fetchBlogs = async () => {
-    if (!siteId) return;
-    setLoading(true);
-    try {
-      let url = `/api/${siteId}/blogs?`;
-      if (statusFilter !== "all") url += `&status=${statusFilter}`;
-      if (sortBy) url += `&sort=${sortBy}`;
-      const res = await fetch(url);
-      const json = await res.json();
-      if (json.success) setBlogs(json.data);
-      else console.error("Failed to fetch blogs", json.message);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
+ const fetchBlogs = async () => {
+  if (!siteId) return;
+
+  setLoading(true);
+
+  try {
+    const params = new URLSearchParams();
+
+    // Status filter
+    if (statusFilter !== "all") {
+      params.append("statusFilter", statusFilter);
     }
-  };
+
+    //  Sort
+    if (sortBy) {
+      params.append("sort", sortBy);
+    }
+
+    // Tag filter
+    if (tagFilter) {
+      params.append("tagFilter", tagFilter);
+    }
+
+    // // (Optional) Search
+    // if (searchTerm) {
+    //   params.append("searchTerm", searchTerm);
+    // }
+
+    const url = `/api/${siteId}/blogs?${params.toString()}`;
+
+    const res = await fetch(url);
+    const json = await res.json();
+
+    if (json.success) {
+      setBlogs(json.data);
+    } else {
+      console.error("Failed to fetch blogs", json.message);
+    }
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
-    fetchBlogs();
-  }, [ statusFilter, sortBy]);
-
-  // Client‑side filtering (status already applied via API, but we keep status in filter for consistency)
-  const filteredBlogs = blogs.filter((blog) => {
-    // Tag filter
-    if (tagFilter && !(blog.tags || []).includes(tagFilter)) return false;
-    return true;
-  });
+  fetchBlogs();
+}, [statusFilter, sortBy, tagFilter]);
 
   const resetModal = () => {
     setFormData({ title: "", content: "", status: "draft", order: 0 });
@@ -310,6 +331,7 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
         method: "DELETE",
       });
       const json = await res.json();
+
       if (json.success) {
         fetchBlogs();
         showToast("Blog deleted successfully");
@@ -449,7 +471,7 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
     <div className="w-full">
       <SectionHeader
         title="Blogs"
-        count={filteredBlogs.length}
+        count={blogs.length}
         accent={accent}
         onAdd={openCreateModal}
       />
@@ -467,7 +489,7 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
         <div className="flex justify-center py-16">
           <div className="animate-pulse text-gray-400">Loading blogs...</div>
         </div>
-      ) : filteredBlogs.length === 0 ? (
+      ) : blogs.length === 0 ? (
         <div className="text-center py-16 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
           <Icon d={icons.image} size={48} color="#9ca3af" />
           <p className="text-gray-400 mt-3">
@@ -477,7 +499,7 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
       ) : (
         <DataTable
           columns={columns}
-          rows={filteredBlogs}
+          rows={blogs}
           accent={accent}
           onEdit={openEditModal}
           onDelete={handleDelete}
@@ -532,7 +554,7 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
             >
               <option value="draft">Draft</option>
               <option value="published">Published</option>
-              <option value="archived">Archived</option>
+              {/* <option value="archived">Archived</option> */}
             </select>
           </div>
           <div>
@@ -543,7 +565,7 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
               type="text"
               value={tagsInput}
               onChange={(e) => setTagsInput(e.target.value)}
-              placeholder="e.g. aviation, olympiad, science"
+              placeholder="eg: tag1, tag2, tag3"
               className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               disabled={isSubmitting}
             />
@@ -560,8 +582,9 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
               disabled={isSubmitting}
             />
             {editingBlog && editingBlog.imageFileId && (
-              <p className="text-xs text-gray-400 mt-1">
-                Current image will be kept if you leave this empty.
+              <p className="text-xs text-black-900 mt-1 font-bold">
+                Current file: <span className="text-gray-500">{editingBlog.imageFilename}</span>
+                {/* Current image will be kept if you leave this empty. */}
               </p>
             )}
           </div>

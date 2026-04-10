@@ -1,31 +1,31 @@
 // src/lib/sites.js
 export const SITES = {
-  tbbt: {
-    id: "tbbt",
-    name: "TBBT Media",
-    domain: "bigbooktheory.com",
-    color: "#E84D3D",
-    description: "Precision-Engineered Events",
-    logo: "TBBT",
-    modules: [
-      // { id: "dashboard", label: "Dashboard", icon: "home" },
-       { id: "blog", label: "Blog Posts", icon: "blog" },
-      { id: "events", label: "Events", icon: "event" },
+  // tbbt: {
+  //   id: "tbbt",
+  //   name: "TBBT Media",
+  //   domain: "bigbooktheory.com",
+  //   color: "#E84D3D",
+  //   description: "Precision-Engineered Events",
+  //   logo: "TBBT",
+  //   modules: [
+  //     // { id: "dashboard", label: "Dashboard", icon: "home" },
+  //      { id: "blog", label: "Blog Posts", icon: "blog" },
+  //     { id: "events", label: "Events", icon: "event" },
      
-      { id: "gallery", label: "Media Gallery", icon: "gallery" },
-      { id: "settings", label: "Settings", icon: "settings" },
-    ],
-  },
+  //     { id: "gallery", label: "Media Gallery", icon: "gallery" },
+  //     { id: "settings", label: "Settings", icon: "settings" },
+  //   ],
+  // },
   cso: {
     id: "cso",
-    name: "CSO India",
+    name: "CSO",
     domain: "thecso.in",
     color: "#1A7A4C",
     description: "Centre for Scientific Outreach",
     logo: "CSO",
     modules: [
       // { id: "dashboard", label: "Dashboard", icon: "home" },
-      { id: "blog", label: "Blogs", icon: "blog" },
+      { id: "blogs", label: "Blogs", icon: "blog" },
       // { id: "programs", label: "Programs", icon: "award" },
       // { id: "team", label: "Team Members", icon: "people" },
       // { id: "donations", label: "Donations", icon: "donation" },
@@ -35,14 +35,14 @@ export const SITES = {
   },
   nao: {
     id: "nao",
-    name: "NAO 2026",
-    domain: "nao-new.vercel.app",
+    name: "NAO",
+    domain: "nationalaviationolympiad.com",
     color: "#0E4DA4",
     description: "National Aviation Olympiad",
     logo: "NAO",
     modules: [
       // { id: "dashboard", label: "Dashboard", icon: "home" },
-       { id: "blog", label: "Blogs", icon: "blog" },
+       { id: "blogs", label: "Blogs", icon: "blog" },
       { id: "experts", label: "Expert Panel", icon: "people" },
       { id: "resources", label: "Resources", icon: "resource" },
       { id: "partners", label: "Partners", icon: "partner" },

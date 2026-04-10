@@ -25,21 +25,21 @@ import { NAORegistrations } from "./sites/nao/NAORegistrations";
 import { NAONews } from "./sites/nao/NAONews";
 
 const map = {
-  tbbt: {
-    blog: TBBTBlog,
-    events: TBBTEvents,
+  // tbbt: {
+  //   blog: TBBTBlog,
+  //   events: TBBTEvents,
 
-    gallery: TBBTGallery,
-  },
+  //   gallery: TBBTGallery,
+  // },
   cso: {
-    blog: CSOBlog,
+    blogs: CSOBlog,
     programs: CSOPrograms,
     team: CSOTeam,
     donations: CSODonations,
     inquiries: CSOInquiries,
   },
   nao: {
-    blog: NAOBlogs,
+    blogs: NAOBlogs,
     experts: NAOExperts,
     resources: NAOResources,
     partners: NAOPartners,
