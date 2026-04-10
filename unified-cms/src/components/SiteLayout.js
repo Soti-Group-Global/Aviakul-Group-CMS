@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { SITES } from "@/lib/sites";
@@ -10,6 +10,7 @@ import { icons } from "@/lib/icons";
 export default function SiteLayout({ children }) {
   const params = useParams();
   const pathname = usePathname();
+  const router = useRouter();
   const siteId = params.siteId;
   const site = SITES[siteId];
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -18,13 +19,20 @@ export default function SiteLayout({ children }) {
   const [newSiteName, setNewSiteName] = useState("");
   const [newSiteUrl, setNewSiteUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const accent = site.color;
+  const [adminEmail, setAdminEmail] = useState(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const accent = site?.color;
 
-  const activeModule = pathname.split("/").pop() || "blog";
-  const router = useRouter();
+  const activeModule = pathname.split("/").pop() || "blogs";
+
+  // Load admin email from localStorage on mount
+  useEffect(() => {
+    const email = localStorage.getItem("adminEmail");
+    if (email) setAdminEmail(email);
+  }, []);
 
   const switchSite = (id) => {
-    router.push(`/${id}/blog`);
+    router.push(`/${id}/blogs`);
   };
 
   const handleCreateSite = async (e) => {
@@ -40,12 +48,10 @@ export default function SiteLayout({ children }) {
       });
       const data = await res.json();
       if (data.success) {
-        // Option 1: Show success and reload page to reflect new site (simplest)
         alert("Site created! Please reload the page to see it in the list.");
         setShowAddSiteModal(false);
         setNewSiteName("");
         setNewSiteUrl("");
-        // Option 2: If you later fetch sites dynamically, you'd update state here.
       } else {
         alert(data.message || "Failed to create site");
       }
@@ -57,18 +63,46 @@ export default function SiteLayout({ children }) {
     }
   };
 
+  // Logout function with token authentication
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      const accessToken = localStorage.getItem("token");
+      const refreshToken = localStorage.getItem("refreshToken");
+
+      const res = await fetch("/api/auth/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(accessToken && { Authorization: `Bearer ${accessToken}` }), 
+        },
+        body: JSON.stringify({ refreshToken }),
+      });
+
+      // Always clear local storage regardless of response
+      localStorage.clear();
+      router.push("/login");
+    } catch (err) {
+      console.error("Logout error:", err);
+      localStorage.clear();
+      router.push("/login");
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
   return (
     <div
       className="flex h-screen w-full overflow-hidden relative"
       style={{ backgroundColor: "white" }}
     >
-      {/* Sidebar - unchanged except for modal trigger inside dropdown */}
+      {/* Sidebar */}
       <div
         className={`flex flex-col bg-light-sidebar border-r border-light-border transition-all duration-300 ${
           sidebarOpen ? "w-64" : "w-16"
         }`}
       >
-        {/* Logo / Brand - unchanged */}
+        {/* Logo / Brand */}
         <div
           className={`flex items-center gap-3 border-b border-light-border ${
             sidebarOpen ? "p-5" : "p-4 justify-center"
@@ -89,7 +123,7 @@ export default function SiteLayout({ children }) {
           )}
         </div>
 
-        {/* Site Switcher - unchanged except added modal trigger */}
+        {/* Site Switcher */}
         <div className={`${sidebarOpen ? "p-3" : "p-2"}`}>
           <div
             onClick={() => setSiteSwitcherOpen(!siteSwitcherOpen)}
@@ -126,7 +160,7 @@ export default function SiteLayout({ children }) {
             )}
           </div>
 
-          {/* Site Dropdown - unchanged except the button opens modal */}
+          {/* Site Dropdown */}
           {siteSwitcherOpen && (
             <>
               <div
@@ -164,7 +198,6 @@ export default function SiteLayout({ children }) {
                   </div>
                 ))}
 
-                {/* This button now opens the modal instead of doing nothing */}
                 <button
                   onClick={() => {
                     setSiteSwitcherOpen(false);
@@ -183,7 +216,7 @@ export default function SiteLayout({ children }) {
           )}
         </div>
 
-        {/* Navigation - unchanged */}
+        {/* Navigation */}
         <nav
           className={`flex-1 overflow-y-auto ${sidebarOpen ? "px-3" : "px-2"}`}
         >
@@ -214,26 +247,57 @@ export default function SiteLayout({ children }) {
           })}
         </nav>
 
-        {/* Footer - unchanged */}
-        {sidebarOpen && (
-          <div className="border-t border-light-border p-4 flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-black/5 flex items-center justify-center">
+        {/* ✅ LOGOUT BUTTON - Footer section */}
+        {sidebarOpen ? (
+          <div className="border-t border-light-border p-4 flex items-center justify-between gap-2.5">
+            <div className="flex items-center gap-2.5 flex-1 min-w-0">
+              <div className="w-8 h-8 rounded-full bg-black/5 flex items-center justify-center flex-shrink-0">
+                <Icon
+                  d={icons.users}
+                  size={14}
+                  className="text-light-text-muted"
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-semibold text-light-text truncate">
+                  {adminEmail || "Admin"}
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="p-1.5 rounded-lg hover:bg-red-50 transition-colors group flex-shrink-0"
+              title="Logout"
+            >
               <Icon
-                d={icons.users}
-                size={14}
-                className="text-light-text-muted"
+                d={icons.logout}
+                size={18}
+                className="text-gray-400 group-hover:text-red-600 transition-colors"
               />
-            </div>
-            <div>
-              <div className="text-xs font-semibold text-light-text">Admin</div>
-            </div>
+            </button>
+          </div>
+        ) : (
+          <div className="border-t border-light-border p-2 flex justify-center">
+            <button
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="p-2 rounded-lg hover:bg-red-50 transition-colors group"
+              title="Logout"
+            >
+              <Icon
+                d={icons.logout}
+                size={18}
+                className="text-gray-400 group-hover:text-red-600 transition-colors"
+              />
+            </button>
           </div>
         )}
       </div>
 
-      {/* Main Content - unchanged */}
+      {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Bar - unchanged */}
+        {/* Top Bar */}
         <div className="h-14 flex items-center justify-between px-7 border-b border-light-border bg-white/80 backdrop-blur-sm flex-shrink-0">
           <div className="flex items-center gap-2">
             <div
@@ -261,13 +325,13 @@ export default function SiteLayout({ children }) {
           </div>
         </div>
 
-        {/* Content Area - unchanged */}
+        {/* Content Area */}
         <div className="flex-1 overflow-y-auto p-7">
           <div className="">{children}</div>
         </div>
       </div>
 
-      {/* ✅ ADD SITE MODAL - new code */}
+      {/* Add Site Modal */}
       {showAddSiteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 relative">

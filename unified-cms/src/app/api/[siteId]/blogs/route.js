@@ -21,26 +21,48 @@ function parseTags(formData) {
   return [];
 }
 
-// GET /api/nao/blogs?siteId=...&status=...&sort=...
-export async function GET(req,{params}) {
+// GET /api/nao/blogs?siteId=...&statusFilter=...&sort=...&searchTerm=...&tagFilter=...
+
+export async function GET(req, { params }) {
   await connectDB();
-  
-  const {siteId} = await params
+
+  const { siteId } = await params;
 
   const { searchParams } = new URL(req.url);
-  const status = searchParams.get("status");
+
+  const statusFilter = searchParams.get("statusFilter");
   const sortBy = searchParams.get("sort") || "order";
-  const tags = searchParams.get("tags")
+  const searchTerm = searchParams.get("searchTerm");
+  const tagFilter = searchParams.get("tagFilter");
 
   const filter = {};
-  if (siteId) filter.siteId = siteId;
-  if (status && ["draft", "published", "archived"].includes(status))
-    filter.status = status;
- if (tags) {
-  const tagsArray = tags.split(",").map(t => t.trim());
-  filter.tags = { $in: tagsArray };
-}
 
+  // Site filter
+  if (siteId) filter.siteId = siteId;
+
+  // Status filter
+  if (
+    statusFilter &&
+    ["draft", "published", "archived"].includes(statusFilter)
+  ) {
+    filter.status = statusFilter;
+  }
+
+  // tag filter
+  if (tagFilter) {
+    const tagsArray = tagFilter.split(",").map((t) => t.trim());
+    filter.tags = { $in: tagsArray };
+  }
+
+  // Search (title + content)
+  if (searchTerm) {
+    filter.$or = [
+      { title: { $regex: searchTerm, $options: "i" } },
+      { content: { $regex: searchTerm, $options: "i" } },
+    ];
+  }
+
+  // Sorting
   let sortOptions = {};
   if (sortBy === "order") sortOptions = { order: 1, createdAt: -1 };
   else if (sortBy === "newest") sortOptions = { createdAt: -1 };
@@ -48,7 +70,32 @@ export async function GET(req,{params}) {
   else sortOptions = { order: 1, createdAt: -1 };
 
   const blogs = await Blog.find(filter).sort(sortOptions);
-  return Response.json({ success: true, data: blogs });
+
+  const filesCollection = mongoose.connection.db.collection("fs.files");
+
+  const blogsWithImages = await Promise.all(
+    blogs.map(async (blog) => {
+      let filename = null;
+
+      if (blog.imageFileId) {
+        const file = await filesCollection.findOne({
+          _id: blog.imageFileId,
+        });
+
+        filename = file?.filename || null;
+      }
+
+      return {
+        ...blog._doc,
+        imageFilename: filename,
+      };
+    }),
+  );
+
+  return Response.json({
+    success: true,
+    data: blogsWithImages,
+  });
 }
 
 // POST /api/nao/blogs
