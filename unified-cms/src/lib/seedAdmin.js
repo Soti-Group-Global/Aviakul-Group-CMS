@@ -4,7 +4,7 @@ import User from "@/models/User";
 
 export async function seedAdmin() {
   try {
-    const email = process.env.ADMIN_EMAIL || "admin@test.com";
+    const email = process.env.ADMIN_EMAIL || "centreforscientificoutreach@gmail.com";
     const password = process.env.ADMIN_PASSWORD || "admin@123";
 
     const existing = await User.findOne({ email });
