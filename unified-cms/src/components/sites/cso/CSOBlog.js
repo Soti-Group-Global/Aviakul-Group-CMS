@@ -203,7 +203,7 @@ const Modal = ({ isOpen, onClose, title, children, isSubmitting }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-6 md:p-0">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl p-5 relative animate-in fade-in zoom-in duration-200 max-h-[94vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-5 sticky top-0 bg-white py-2">
+        <div className="flex justify-between items-center mb-5  top-0 bg-white py-2">
           <h3 className="text-xl font-bold text-gray-800">{title}</h3>
           <button
             onClick={onClose}
