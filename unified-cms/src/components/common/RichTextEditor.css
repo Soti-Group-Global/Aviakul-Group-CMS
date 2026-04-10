@@ -1,21 +1,15 @@
-/* ══════════════════════════════════════════════════════════
-   RichTextEditor.css — Custom Tiptap toolbar & editor
-   ══════════════════════════════════════════════════════════ */
-
 .rte-container {
   border: 1px solid #d1d5db;
   border-radius: 7px;
   overflow: hidden;
   background: #fff;
   transition: border-color 0.2s, box-shadow 0.2s;
-  height: 100%;
 }
 .rte-container:focus-within {
   border-color: #6366f1;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
 }
 
-/* ─── Toolbar ─── */
 .rte-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -26,9 +20,9 @@
   border-bottom: 1px solid #e5e7eb;
   position: relative;
   min-height: 38px;
+  overflow: visible;   /* FIX 1: allow dropdown to expand */
 }
 
-/* Toolbar button */
 .rte-btn {
   display: inline-flex;
   align-items: center;
@@ -57,7 +51,6 @@
   color: #1d4ed8;
 }
 
-/* Separator */
 .rte-sep {
   width: 1px;
   height: 22px;
@@ -66,7 +59,6 @@
   flex-shrink: 0;
 }
 
-/* Select dropdowns */
 .rte-select {
   height: 30px;
   padding: 0 6px;
@@ -87,7 +79,6 @@
   min-width: 120px;
 }
 
-/* Icon text inside buttons */
 .rte-icon {
   font-size: 14px;
   line-height: 1;
@@ -97,66 +88,14 @@
   color: #ef4444;
 }
 
-/* Insert-blank toolbar button */
-.rte-icon--blank {
-  font-size: 11px;
-  font-weight: 700;
-  color: #6366f1;
-  letter-spacing: -0.5px;
-}
-.rte-btn:has(.rte-icon--blank):hover {
-  background: #eef2ff;
-  border-color: #a5b4fc;
-}
-
-/* ── Template blank node (in the editor) ── */
-.rte-content .tiptap span.tpl-blank {
-  display: inline-block;
-  background: #eef2ff;
-  color: #4338ca;
-  border: 1.5px dashed #a5b4fc;
-  border-radius: 4px;
-  padding: 0 8px 1px;
-  font-style: italic;
-  font-size: 0.88em;
-  cursor: pointer;
-  user-select: none;
-  white-space: nowrap;
-  vertical-align: middle;
-  transition: background 0.12s, border-color 0.12s, color 0.12s;
-}
-.rte-content .tiptap span.tpl-blank::before {
-  content: "✎ ";
-  font-size: 0.8em;
-  opacity: 0.7;
-}
-.rte-content .tiptap span.tpl-blank:hover {
-  background: #e0e7ff;
-  border-color: #6366f1;
-  color: #3730a3;
-}
-.rte-content .tiptap span.tpl-blank:hover::after {
-  content: " ×";
-  font-size: 0.8em;
-  opacity: 0.5;
-}
-/* Selected state (Tiptap adds .ProseMirror-selectednode) */
-.rte-content .tiptap span.tpl-blank.ProseMirror-selectednode {
-  background: #e0e7ff;
-  border-color: #6366f1;
-  outline: none;
-}
-
-/* ─── Color picker ─── */
+/* FIX 1: Color dropdown – align to the right, avoid clipping */
 .rte-color-wrap {
   position: relative;
   display: inline-flex;
 }
-
 .rte-color-btn {
   padding: 0 5px;
 }
-
 .rte-color-letter {
   font-weight: 700;
   font-size: 14px;
@@ -169,12 +108,12 @@
   padding: 1px 3px;
   border-radius: 2px;
 }
-
 .rte-color-dropdown {
   position: absolute;
   top: 100%;
-  left: 0;
-  z-index: 100;
+  right: 0;
+  left: auto;
+  z-index: 1000;
   display: grid;
   grid-template-columns: repeat(7, 26px);
   gap: 3px;
@@ -182,10 +121,9 @@
   background: #fff;
   border: 1px solid #dee2e6;
   border-radius: 6px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   margin-top: 4px;
 }
-
 .rte-color-swatch {
   width: 26px;
   height: 26px;
@@ -199,7 +137,6 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   z-index: 1;
 }
-
 .rte-color-reset {
   grid-column: 1 / -1;
   margin-top: 4px;
@@ -216,7 +153,6 @@
   background: #e9ecef;
 }
 
-/* ─── Source editor overlay ─── */
 .rte-source-overlay {
   position: absolute;
   inset: 100% 0 auto 0;
@@ -241,12 +177,9 @@
   box-sizing: border-box;
 }
 
-/* ─── Editor content area ─── */
 .rte-content {
   min-height: 120px;
-  height: 100%;
 }
-
 .rte-content .tiptap {
   min-height: 120px;
   padding: 12px 16px;
@@ -255,8 +188,6 @@
   line-height: 1.65;
   outline: none;
 }
-
-/* Placeholder */
 .rte-content .tiptap p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   color: #c0c5cc;
@@ -273,18 +204,22 @@
 .rte-content .tiptap h4 { font-size: 1.05em; font-weight: 600; margin: 0.35em 0 0.15em; }
 
 /* Paragraphs */
-.rte-content .tiptap p {
-  margin: 0 0 0.5em;
-}
-.rte-content .tiptap p:last-child {
-  margin-bottom: 0;
-}
+.rte-content .tiptap p { margin: 0 0 0.5em; }
+.rte-content .tiptap p:last-child { margin-bottom: 0; }
 
-/* Lists */
-.rte-content .tiptap ul,
-.rte-content .tiptap ol {
+/* FIX 2: Lists – show bullets and numbers */
+.rte-content .tiptap ul {
+  list-style-type: disc;
   padding-left: 1.5em;
   margin: 0.4em 0;
+}
+.rte-content .tiptap ol {
+  list-style-type: decimal;
+  padding-left: 1.5em;
+  margin: 0.4em 0;
+}
+.rte-content .tiptap li {
+  margin: 0.1em 0;
 }
 
 /* Links */
