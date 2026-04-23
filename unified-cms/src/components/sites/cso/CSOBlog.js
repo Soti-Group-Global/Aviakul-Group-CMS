@@ -203,7 +203,7 @@ const Modal = ({ isOpen, onClose, title, children, isSubmitting }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-6 md:p-0">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl p-5 relative animate-in fade-in zoom-in duration-200 max-h-[94vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-5 sticky top-0 bg-white py-2">
+        <div className="flex justify-between items-center mb-5  top-0 bg-white py-2">
           <h3 className="text-xl font-bold text-gray-800">{title}</h3>
           <button
             onClick={onClose}
@@ -238,61 +238,60 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
   const [sortBy, setSortBy] = useState("order");
   const [tagFilter, setTagFilter] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
 
   // Derive unique tags from blogs
   const uniqueTags = Array.from(
     new Set(blogs.flatMap((blog) => blog.tags || [])),
   ).sort();
 
- const fetchBlogs = async () => {
-  if (!siteId) return;
+  const fetchBlogs = async () => {
+    if (!siteId) return;
 
-  setLoading(true);
+    setLoading(true);
 
-  try {
-    const params = new URLSearchParams();
+    try {
+      const params = new URLSearchParams();
 
-    // Status filter
-    if (statusFilter !== "all") {
-      params.append("statusFilter", statusFilter);
+      // Status filter
+      if (statusFilter !== "all") {
+        params.append("statusFilter", statusFilter);
+      }
+
+      //  Sort
+      if (sortBy) {
+        params.append("sort", sortBy);
+      }
+
+      // Tag filter
+      if (tagFilter) {
+        params.append("tagFilter", tagFilter);
+      }
+
+      // // (Optional) Search
+      // if (searchTerm) {
+      //   params.append("searchTerm", searchTerm);
+      // }
+
+      const url = `/api/${siteId}/blogs?${params.toString()}`;
+
+      const res = await fetch(url);
+      const json = await res.json();
+
+      if (json.success) {
+        setBlogs(json.data);
+      } else {
+        console.error("Failed to fetch blogs", json.message);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
-
-    //  Sort
-    if (sortBy) {
-      params.append("sort", sortBy);
-    }
-
-    // Tag filter
-    if (tagFilter) {
-      params.append("tagFilter", tagFilter);
-    }
-
-    // // (Optional) Search
-    // if (searchTerm) {
-    //   params.append("searchTerm", searchTerm);
-    // }
-
-    const url = `/api/${siteId}/blogs?${params.toString()}`;
-
-    const res = await fetch(url);
-    const json = await res.json();
-
-    if (json.success) {
-      setBlogs(json.data);
-    } else {
-      console.error("Failed to fetch blogs", json.message);
-    }
-  } catch (err) {
-    console.error(err);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   useEffect(() => {
-  fetchBlogs();
-}, [statusFilter, sortBy, tagFilter]);
+    fetchBlogs();
+  }, [statusFilter, sortBy, tagFilter]);
 
   const resetModal = () => {
     setFormData({ title: "", content: "", status: "draft", order: 0 });
@@ -423,14 +422,12 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
     {
       key: "content",
       label: "Content",
-      render: (v) => {
-        const text = v?.replace(/<[^>]+>/g, "");
-        return (
-          <span className="max-w-xs truncate block text-gray-500">
-            {text || "—"}
-          </span>
-        );
-      },
+      render: (v) => (
+        <div
+          className="text-gray-500 text-xs max-w-xs prose prose-xs"
+          dangerouslySetInnerHTML={{ __html: v || "—" }}
+        />
+      ),
     },
     {
       key: "tags",
@@ -583,7 +580,10 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
             />
             {editingBlog && editingBlog.imageFileId && (
               <p className="text-xs text-black-900 mt-1 font-bold">
-                Current file: <span className="text-gray-500">{editingBlog.imageFilename}</span>
+                Current file:{" "}
+                <span className="text-gray-500">
+                  {editingBlog.imageFilename}
+                </span>
                 {/* Current image will be kept if you leave this empty. */}
               </p>
             )}
