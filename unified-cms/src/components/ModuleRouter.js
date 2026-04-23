@@ -52,7 +52,7 @@ const map = {
   portals: {
     "school-resources": SchoolResources,
     "student-resources": StudentResources,
-    "website-resources": WebsiteResources,
+    // "website-resources": WebsiteResources,
   },
 };
 

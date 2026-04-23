@@ -61,7 +61,7 @@ export const SITES = {
     modules: [
       { id: "school-resources", label: "School Resources", icon: "users" },
       { id: "student-resources", label: "Student resources", icon: "people" },
-      { id: "website-resources", label: "Website", icon: "globe" },
+      // { id: "website-resources", label: "Website", icon: "globe" },
     ],
   },
   // aeron: {
