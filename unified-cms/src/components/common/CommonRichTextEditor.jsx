@@ -1,6 +1,5 @@
-"use client";
-
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
@@ -46,9 +45,10 @@ const COLOR_PRESETS = [
 ];
 
 /* ═══════════════════════════════════════════════════════════
-   Toolbar (English only)
+   Toolbar
    ═══════════════════════════════════════════════════════════ */
 const CommonToolbar = ({ editor }) => {
+  const { t } = useTranslation("rich_text_editor");
   const [showSource, setShowSource] = useState(false);
   const [sourceHtml, setSourceHtml] = useState("");
   const [showColorPicker, setShowColorPicker] = useState(false);
@@ -56,7 +56,6 @@ const CommonToolbar = ({ editor }) => {
   const colorRef = useRef(null);
   const bgColorRef = useRef(null);
 
-  /* close color pickers on outside click */
   useEffect(() => {
     const handler = (e) => {
       if (colorRef.current && !colorRef.current.contains(e.target))
@@ -70,7 +69,6 @@ const CommonToolbar = ({ editor }) => {
 
   if (!editor) return null;
 
-  /* Source toggle */
   const toggleSource = () => {
     if (!showSource) {
       setSourceHtml(editor.getHTML());
@@ -101,13 +99,23 @@ const CommonToolbar = ({ editor }) => {
         showSource,
         toggleSource,
         <span className="rte-icon">&lt;&gt;</span>,
-        "HTML Source",
+        t("html"),
       )}
       {sep()}
 
       {/* Undo / Redo */}
-      {btn(false, () => editor.chain().focus().undo().run(), "↩", "Undo")}
-      {btn(false, () => editor.chain().focus().redo().run(), "↪", "Redo")}
+      {btn(
+        false,
+        () => editor.chain().focus().undo().run(),
+        <span className="rte-icon">↩</span>,
+        t("undo"),
+      )}
+      {btn(
+        false,
+        () => editor.chain().focus().redo().run(),
+        <span className="rte-icon">↪</span>,
+        t("redo"),
+      )}
       {sep()}
 
       {/* Heading dropdown */}
@@ -130,97 +138,101 @@ const CommonToolbar = ({ editor }) => {
           else editor.chain().focus().toggleHeading({ level: val }).run();
         }}
       >
-        <option value={0}>Normal</option>
-        <option value={1}>Heading 1</option>
-        <option value={2}>Heading 2</option>
-        <option value={3}>Heading 3</option>
-        <option value={4}>Heading 4</option>
+        <option value={0}>{t("heading_normal")}</option>
+        <option value={1}>{t("heading_1")}</option>
+        <option value={2}>{t("heading_2")}</option>
+        <option value={3}>{t("heading_3")}</option>
+        <option value={4}>{t("heading_4")}</option>
       </select>
       {sep()}
 
       {/* Bold / Italic / Underline / Strikethrough */}
-      {btn(editor.isActive("bold"), () => editor.chain().focus().toggleBold().run(), <b>B</b>, "Bold")}
-      {btn(editor.isActive("italic"), () => editor.chain().focus().toggleItalic().run(), <i>I</i>, "Italic")}
-      {btn(editor.isActive("underline"), () => editor.chain().focus().toggleUnderline().run(), <u>U</u>, "Underline")}
-      {btn(editor.isActive("strike"), () => editor.chain().focus().toggleStrike().run(), <s>S</s>, "Strikethrough")}
+      {btn(
+        editor.isActive("bold"),
+        () => editor.chain().focus().toggleBold().run(),
+        <b>B</b>,
+        t("bold"),
+      )}
+      {btn(
+        editor.isActive("italic"),
+        () => editor.chain().focus().toggleItalic().run(),
+        <i>I</i>,
+        t("italic"),
+      )}
+      {btn(
+        editor.isActive("underline"),
+        () => editor.chain().focus().toggleUnderline().run(),
+        <u>U</u>,
+        t("underline"),
+      )}
+      {btn(
+        editor.isActive("strike"),
+        () => editor.chain().focus().toggleStrike().run(),
+        <s>S</s>,
+        t("strikethrough"),
+      )}
       {btn(
         editor.isActive("subscript"),
         () => editor.chain().focus().toggleSubscript().run(),
-        <span>X<sub>₂</sub></span>,
-        "Subscript",
+        <span>
+          X<sub>₂</sub>
+        </span>,
+        t("subscript"),
       )}
       {btn(
         editor.isActive("superscript"),
         () => editor.chain().focus().toggleSuperscript().run(),
-        <span>X<sup>²</sup></span>,
-        "Superscript",
+        <span>
+          X<sup>²</sup>
+        </span>,
+        t("superscript"),
       )}
       {sep()}
 
-      {/* Link */}
+      {/* Link - FIXED */}
       {btn(
         editor.isActive("link"),
         () => {
           if (editor.isActive("link")) {
             editor.chain().focus().unsetLink().run();
           } else {
-            const url = prompt("Enter URL:");
-            if (url) editor.chain().focus().setLink({ href: url }).run();
+            const url = prompt(t("link_prompt"));
+            if (url) {
+              if (!editor.state.selection.empty) {
+                editor.chain().focus().setLink({ href: url }).run();
+              } else {
+                editor
+                  .chain()
+                  .focus()
+                  .insertContent({
+                    type: "text",
+                    marks: [{ type: "link", attrs: { href: url } }],
+                    text: url,
+                  })
+                  .run();
+              }
+            }
           }
         },
         <span className="rte-icon">🔗</span>,
-        "Insert Link",
+        t("link"),
       )}
       {sep()}
 
-      {/* Alignment */}
-      {btn(editor.isActive({ textAlign: "left" }), () => editor.chain().focus().setTextAlign("left").run(), <span className="rte-icon">≡ₗ</span>, "Align Left")}
-      {btn(editor.isActive({ textAlign: "center" }), () => editor.chain().focus().setTextAlign("center").run(), <span className="rte-icon">≡ᶜ</span>, "Center")}
-      {btn(editor.isActive({ textAlign: "right" }), () => editor.chain().focus().setTextAlign("right").run(), <span className="rte-icon">≡ᵣ</span>, "Align Right")}
-      {btn(editor.isActive({ textAlign: "justify" }), () => editor.chain().focus().setTextAlign("justify").run(), <span className="rte-icon">≡ⱼ</span>, "Justify")}
-      {sep()}
-
-      {/* Lists */}
-      {btn(editor.isActive("bulletList"), () => editor.chain().focus().toggleBulletList().run(), <span className="rte-icon">•≡</span>, "Bullet List")}
-      {btn(editor.isActive("orderedList"), () => editor.chain().focus().toggleOrderedList().run(), <span className="rte-icon">1≡</span>, "Numbered List")}
-      {sep()}
-
-      {/* Clear formatting */}
-      {btn(false, () => editor.chain().focus().clearNodes().unsetAllMarks().run(), <span className="rte-icon">T<sub>x</sub></span>, "Clear Formatting")}
-      {sep()}
-
-      {/* Font family */}
-      <select
-        className="rte-select rte-select--font"
-        value={editor.getAttributes("textStyle").fontFamily || ""}
-        onChange={(e) => {
-          const val = e.target.value;
-          if (val) editor.chain().focus().setFontFamily(val).run();
-          else editor.chain().focus().unsetFontFamily().run();
-        }}
-      >
-        <option value="">Default</option>
-        <option value="Arial" style={{ fontFamily: "Arial" }}>Arial</option>
-        <option value="Times New Roman" style={{ fontFamily: "Times New Roman" }}>Times New Roman</option>
-        <option value="Courier New" style={{ fontFamily: "Courier New" }}>Courier New</option>
-        <option value="Georgia" style={{ fontFamily: "Georgia" }}>Georgia</option>
-        <option value="Verdana" style={{ fontFamily: "Verdana" }}>Verdana</option>
-        <option value="Tahoma" style={{ fontFamily: "Tahoma" }}>Tahoma</option>
-        <option value="Trebuchet MS" style={{ fontFamily: "Trebuchet MS" }}>Trebuchet MS</option>
-      </select>
-      {sep()}
-
-      {/* Font color */}
+         {/* Font color */}
       <div className="rte-color-wrap" ref={colorRef}>
         <button
           type="button"
           className="rte-btn rte-color-btn"
           onClick={() => setShowColorPicker(!showColorPicker)}
-          title="Text Color"
+          title={t("font_color")}
         >
           <span
             className="rte-color-letter"
-            style={{ borderBottomColor: editor.getAttributes("textStyle").color || "#000" }}
+            style={{
+              borderBottomColor:
+                editor.getAttributes("textStyle").color || "#000",
+            }}
           >
             A
           </span>
@@ -247,7 +259,7 @@ const CommonToolbar = ({ editor }) => {
                 setShowColorPicker(false);
               }}
             >
-              Reset
+              {t("color_reset")}
             </button>
           </div>
         )}
@@ -259,11 +271,14 @@ const CommonToolbar = ({ editor }) => {
           type="button"
           className="rte-btn rte-color-btn"
           onClick={() => setShowBgColorPicker(!showBgColorPicker)}
-          title="Background Color"
+          title={t("bg_color")}
         >
           <span
             className="rte-color-letter rte-color-letter--bg"
-            style={{ backgroundColor: editor.getAttributes("highlight").color || "transparent" }}
+            style={{
+              backgroundColor:
+                editor.getAttributes("highlight").color || "transparent",
+            }}
           >
             A
           </span>
@@ -290,39 +305,182 @@ const CommonToolbar = ({ editor }) => {
                 setShowBgColorPicker(false);
               }}
             >
-              Reset
+              {t("color_reset")}
             </button>
           </div>
         )}
       </div>
       {sep()}
 
+      {/* Alignment */}
+      {btn(
+        editor.isActive({ textAlign: "left" }),
+        () => editor.chain().focus().setTextAlign("left").run(),
+        <span className="rte-icon">≡ₗ</span>,
+        t("align_left"),
+      )}
+      {btn(
+        editor.isActive({ textAlign: "center" }),
+        () => editor.chain().focus().setTextAlign("center").run(),
+        <span className="rte-icon">≡ᶜ</span>,
+        t("align_center"),
+      )}
+      {btn(
+        editor.isActive({ textAlign: "right" }),
+        () => editor.chain().focus().setTextAlign("right").run(),
+        <span className="rte-icon">≡ᵣ</span>,
+        t("align_right"),
+      )}
+      {btn(
+        editor.isActive({ textAlign: "justify" }),
+        () => editor.chain().focus().setTextAlign("justify").run(),
+        <span className="rte-icon">≡ⱼ</span>,
+        t("align_justify"),
+      )}
+      {sep()}
+
+      {/* Lists */}
+      {btn(
+        editor.isActive("bulletList"),
+        () => editor.chain().focus().toggleBulletList().run(),
+        <span className="rte-icon">•≡</span>,
+        t("bullet_list"),
+      )}
+      {btn(
+        editor.isActive("orderedList"),
+        () => editor.chain().focus().toggleOrderedList().run(),
+        <span className="rte-icon">1≡</span>,
+        t("ordered_list"),
+      )}
+      {sep()}
+
+      {/* Remove formatting */}
+      {btn(
+        false,
+        () => editor.chain().focus().clearNodes().unsetAllMarks().run(),
+        <span className="rte-icon">
+          T<sub>x</sub>
+        </span>,
+        t("clear_formatting"),
+      )}
+      {sep()}
+
+      {/* Font family */}
+      <select
+        className="rte-select rte-select--font"
+        value={editor.getAttributes("textStyle").fontFamily || ""}
+        onChange={(e) => {
+          const val = e.target.value;
+          if (val) editor.chain().focus().setFontFamily(val).run();
+          else editor.chain().focus().unsetFontFamily().run();
+        }}
+      >
+        <option value="">{t("font_default")}</option>
+        <option value="Arial" style={{ fontFamily: "Arial" }}>
+          Arial
+        </option>
+        <option
+          value="Times New Roman"
+          style={{ fontFamily: "Times New Roman" }}
+        >
+          Times New Roman
+        </option>
+        <option value="Courier New" style={{ fontFamily: "Courier New" }}>
+          Courier New
+        </option>
+        <option value="Georgia" style={{ fontFamily: "Georgia" }}>
+          Georgia
+        </option>
+        <option value="Verdana" style={{ fontFamily: "Verdana" }}>
+          Verdana
+        </option>
+        <option value="Tahoma" style={{ fontFamily: "Tahoma" }}>
+          Tahoma
+        </option>
+        <option value="Trebuchet MS" style={{ fontFamily: "Trebuchet MS" }}>
+          Trebuchet MS
+        </option>
+      </select>
+      {sep()}
+
+    
+
       {/* Table */}
       {btn(
         false,
-        () => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(),
+        () =>
+          editor
+            .chain()
+            .focus()
+            .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+            .run(),
         <span className="rte-icon">⊞</span>,
-        "Insert Table",
+        t("insert_table"),
       )}
-
-      {/* Table controls */}
       {editor.isActive("table") && (
         <>
-          {btn(false, () => editor.chain().focus().addColumnBefore().run(), <span className="rte-icon">⫷</span>, "Add Column Before")}
-          {btn(false, () => editor.chain().focus().addColumnAfter().run(), <span className="rte-icon">⫸</span>, "Add Column After")}
-          {btn(false, () => editor.chain().focus().deleteColumn().run(), <span className="rte-icon rte-icon--danger">⊘c</span>, "Delete Column")}
-          {btn(false, () => editor.chain().focus().addRowBefore().run(), <span className="rte-icon">⤒</span>, "Add Row Before")}
-          {btn(false, () => editor.chain().focus().addRowAfter().run(), <span className="rte-icon">⤓</span>, "Add Row After")}
-          {btn(false, () => editor.chain().focus().deleteRow().run(), <span className="rte-icon rte-icon--danger">⊘r</span>, "Delete Row")}
-          {btn(false, () => editor.chain().focus().deleteTable().run(), <span className="rte-icon rte-icon--danger">✕⊞</span>, "Delete Table")}
+          {btn(
+            false,
+            () => editor.chain().focus().addColumnBefore().run(),
+            <span className="rte-icon">⫷</span>,
+            t("column_before"),
+          )}
+          {btn(
+            false,
+            () => editor.chain().focus().addColumnAfter().run(),
+            <span className="rte-icon">⫸</span>,
+            t("column_after"),
+          )}
+          {btn(
+            false,
+            () => editor.chain().focus().deleteColumn().run(),
+            <span className="rte-icon rte-icon--danger">⊘c</span>,
+            t("delete_column"),
+          )}
+          {btn(
+            false,
+            () => editor.chain().focus().addRowBefore().run(),
+            <span className="rte-icon">⤒</span>,
+            t("row_before"),
+          )}
+          {btn(
+            false,
+            () => editor.chain().focus().addRowAfter().run(),
+            <span className="rte-icon">⤓</span>,
+            t("row_after"),
+          )}
+          {btn(
+            false,
+            () => editor.chain().focus().deleteRow().run(),
+            <span className="rte-icon rte-icon--danger">⊘r</span>,
+            t("delete_row"),
+          )}
+          {btn(
+            false,
+            () => editor.chain().focus().deleteTable().run(),
+            <span className="rte-icon rte-icon--danger">✕⊞</span>,
+            t("delete_table"),
+          )}
         </>
       )}
 
       {/* Indent / Outdent */}
-      {btn(false, () => editor.chain().focus().sinkListItem("listItem").run(), <span className="rte-icon">→⇥</span>, "Indent")}
-      {btn(false, () => editor.chain().focus().liftListItem("listItem").run(), <span className="rte-icon">⇤←</span>, "Outdent")}
+      {btn(
+        false,
+        () => editor.chain().focus().sinkListItem("listItem").run(),
+        <span className="rte-icon">→⇥</span>,
+        t("indent"),
+      )}
+       
+      {btn(
+        false,
+        () => editor.chain().focus().liftListItem("listItem").run(),
+        <span className="rte-icon">⇤←</span>,
+        t("outdent"),
+      )}
+      {sep()}
+     
 
-      {/* Source editor overlay */}
       {showSource && (
         <div className="rte-source-overlay">
           <textarea
@@ -337,12 +495,12 @@ const CommonToolbar = ({ editor }) => {
 };
 
 /* ═══════════════════════════════════════════════════════════
-   CommonRichTextEditor — main export (English placeholder)
+   Main Component
    ═══════════════════════════════════════════════════════════ */
 const CommonRichTextEditor = ({
   value = "",
   onChange,
-  placeholder = "Write your text here…",
+  placeholder = "Enter Text…",
 }) => {
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
@@ -351,11 +509,7 @@ const CommonRichTextEditor = ({
     immediatelyRender: false,
     shouldRerenderOnTransaction: false,
     extensions: [
-      StarterKit.configure({
-        heading: { levels: [1, 2, 3, 4] },
-        link: false,
-        underline: false,
-      }),
+      StarterKit.configure({ heading: { levels: [1, 2, 3, 4] }, link: false }),
       Underline,
       TextStyle,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
@@ -373,9 +527,7 @@ const CommonRichTextEditor = ({
       Placeholder.configure({ placeholder }),
     ],
     content: value,
-    onUpdate: ({ editor: ed }) => {
-      onChangeRef.current?.(ed.getHTML());
-    },
+    onUpdate: ({ editor: ed }) => onChangeRef.current?.(ed.getHTML()),
   });
 
   const prevValue = useRef(value);
