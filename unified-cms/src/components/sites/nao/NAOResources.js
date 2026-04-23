@@ -232,7 +232,12 @@ const Modal = ({ isOpen, onClose, title, children, isSubmitting }) => {
 };
 
 // ---------- Main Component ----------
-export const NAOResources = ({ accent = "#3b82f6", id: siteId }) => {
+export const NAOResources = ({
+  accent = "#3b82f6",
+  id: siteId,
+  portalType,
+  title = "Downloadable Resources",
+}) => {
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -246,6 +251,8 @@ export const NAOResources = ({ accent = "#3b82f6", id: siteId }) => {
   const [file, setFile] = useState(null);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false); // ADDED
+
+  // console.log("portalType FE:", portalType);
 
   const categories = [
     "For Schools",
@@ -264,8 +271,11 @@ export const NAOResources = ({ accent = "#3b82f6", id: siteId }) => {
   const fetchResources = async () => {
     if (!siteId) return;
     setLoading(true);
+    const url = portalType
+      ? `/api/${siteId}/resources?siteId=${siteId}&portalType=${portalType}`
+      : `/api/${siteId}/resources?siteId=${siteId}`;
     try {
-      const res = await fetch(`/api/${siteId}/resources?siteId=${siteId}`);
+      const res = await fetch(url);
       const json = await res.json();
       if (json.success) setResources(json.data);
       else console.error("Failed to fetch resources", json.message);
@@ -278,7 +288,7 @@ export const NAOResources = ({ accent = "#3b82f6", id: siteId }) => {
 
   useEffect(() => {
     fetchResources();
-  }, []);
+  }, [portalType, siteId]);
 
   const updateOrderForCategory = async (category, reorderedResources) => {
     const updates = reorderedResources.map((r, idx) => ({
@@ -298,7 +308,11 @@ export const NAOResources = ({ accent = "#3b82f6", id: siteId }) => {
       const res = await fetch(`/api/${siteId}/resources/reorder`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ category, updates }),
+        body: JSON.stringify({
+          category,
+          updates,
+          ...(portalType ? { portalType } : {}),
+        }),
       });
       if (!res.ok) throw new Error("Reorder failed");
     } catch (err) {
@@ -376,6 +390,8 @@ export const NAOResources = ({ accent = "#3b82f6", id: siteId }) => {
     payload.append("order", formData.order.toString());
     if (file) payload.append("file", file);
 
+    payload.append("portalType", portalType || "");
+
     try {
       let url, method;
       if (editingResource) {
@@ -403,9 +419,7 @@ export const NAOResources = ({ accent = "#3b82f6", id: siteId }) => {
   return (
     <div className="w-full mx-auto p-6 bg-white rounded-2xl shadow-sm">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-yellow-600">
-          Downloadable Resources
-        </h1>
+        <h1 className="text-2xl font-bold text-yellow-600">{title}</h1>
         <button
           onClick={() => openCreateModal()}
           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm transition"

@@ -11,7 +11,7 @@ export const SITES = {
   //     // { id: "dashboard", label: "Dashboard", icon: "home" },
   //      { id: "blog", label: "Blog Posts", icon: "blog" },
   //     { id: "events", label: "Events", icon: "event" },
-     
+
   //     { id: "gallery", label: "Media Gallery", icon: "gallery" },
   //     { id: "settings", label: "Settings", icon: "settings" },
   //   ],
@@ -42,13 +42,26 @@ export const SITES = {
     logo: "NAO",
     modules: [
       // { id: "dashboard", label: "Dashboard", icon: "home" },
-       { id: "blogs", label: "Blogs", icon: "blog" },
+      { id: "blogs", label: "Blogs", icon: "blog" },
       { id: "experts", label: "Expert Panel", icon: "people" },
       { id: "resources", label: "Resources", icon: "resource" },
       { id: "partners", label: "Partners", icon: "partner" },
       // { id: "registrations", label: "Registrations", icon: "users" },
       // { id: "news", label: "News & Updates", icon: "blog" },
       { id: "settings", label: "Settings", icon: "settings" },
+    ],
+  },
+  portals: {
+    id: "portals",
+    name: "Portals",
+    domain: "nationalaviationolympiad.com/resources",
+    color: "#e0581e",
+    description: "National Aviation Olympiad Resources",
+    logo: "NAO",
+    modules: [
+      { id: "school-resources", label: "School Resources", icon: "users" },
+      { id: "student-resources", label: "Student resources", icon: "people" },
+      { id: "website-resources", label: "Website", icon: "globe" },
     ],
   },
   // aeron: {

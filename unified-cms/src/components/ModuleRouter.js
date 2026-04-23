@@ -23,6 +23,9 @@ import { NAOResources } from "./sites/nao/NAOResources";
 import { NAOPartners } from "./sites/nao/NAOPartners";
 import { NAORegistrations } from "./sites/nao/NAORegistrations";
 import { NAONews } from "./sites/nao/NAONews";
+import { SchoolResources } from "./sites/portals/SchoolResources";
+import { StudentResources } from "./sites/portals/StudentResources";
+import { WebsiteResources } from "./sites/portals/WebsiteResources";
 
 const map = {
   // tbbt: {
@@ -45,6 +48,11 @@ const map = {
     partners: NAOPartners,
     registrations: NAORegistrations,
     news: NAONews,
+  },
+  portals: {
+    "school-resources": SchoolResources,
+    "student-resources": StudentResources,
+    "website-resources": WebsiteResources,
   },
 };
 

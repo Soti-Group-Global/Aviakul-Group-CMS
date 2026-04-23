@@ -32,7 +32,11 @@ export default function SiteLayout({ children }) {
   }, []);
 
   const switchSite = (id) => {
-    router.push(`/${id}/blogs`);
+    if (id === "portals") {
+      router.push(`/${id}/school-resources`);
+    } else {
+      router.push(`/${id}/blogs`);
+    }
   };
 
   const handleCreateSite = async (e) => {
@@ -74,7 +78,7 @@ export default function SiteLayout({ children }) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(accessToken && { Authorization: `Bearer ${accessToken}` }), 
+          ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
         },
         body: JSON.stringify({ refreshToken }),
       });
@@ -136,7 +140,7 @@ export default function SiteLayout({ children }) {
             }}
           >
             <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white font-mono"
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white font-mono shrink-0"
               style={{ backgroundColor: accent }}
             >
               {site.logo}
@@ -179,7 +183,7 @@ export default function SiteLayout({ children }) {
                     }`}
                   >
                     <div
-                      className="w-7 h-7 rounded-md flex items-center justify-center text-[10px] font-bold text-white font-mono"
+                      className="w-7 h-7 rounded-md flex items-center justify-center text-[10px] font-bold text-white font-mono shrink-0"
                       style={{ backgroundColor: s.color }}
                     >
                       {s.logo}

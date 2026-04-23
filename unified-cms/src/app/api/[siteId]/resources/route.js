@@ -9,11 +9,13 @@ export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const siteId = searchParams.get("siteId");
   const category = searchParams.get("category");
+  const portalType = searchParams.get("portalType");
 
   const filter = {};
-//   && mongoose.Types.ObjectId.isValid(siteId)
-  if (siteId ) filter.siteId = siteId;
+  //   && mongoose.Types.ObjectId.isValid(siteId)
+  if (siteId) filter.siteId = siteId;
   if (category) filter.category = category;
+  if (portalType) filter.portalType = portalType;
 
   const resources = await Resource.find(filter)
     .populate("siteId", "name")
@@ -35,10 +37,24 @@ export async function POST(req) {
     const order = formData.get("order");
     const file = formData.get("file"); // optional
 
+    const portalType = formData.get("portalType");
+
+    console.log("portalType received:", portalType);
+
+    console.log("HIT GLOBAL RESOURCES API");
+
     // Validation
     if (!title || !category || !siteId) {
       return Response.json(
         { success: false, message: "Title, category, and siteId are required" },
+        { status: 400 },
+      );
+    }
+
+    // Only required for portals
+    if (siteId === "portals" && !portalType) {
+      return Response.json(
+        { success: false, message: "portalType is required for portals" },
         { status: 400 },
       );
     }
@@ -100,6 +116,7 @@ export async function POST(req) {
       category,
       siteId,
       // status,
+      portalType: portalType ? portalType : undefined,
       order: order ? parseInt(order) : 0,
       fileId,
     });

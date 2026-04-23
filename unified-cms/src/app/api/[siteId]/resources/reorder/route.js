@@ -6,7 +6,7 @@ export async function PUT(req, { params }) {
   try {
     await connectDB();
     const { siteId } = await params;
-    const { category, updates } = await req.json();
+    const { category, updates, portalType } = await req.json();
 
     if (!siteId || !category || !updates || !Array.isArray(updates)) {
       return Response.json(
@@ -18,6 +18,12 @@ export async function PUT(req, { params }) {
       );
     }
 
+    if (siteId === "portals" && !portalType) {
+      return Response.json(
+        { success: false, message: "portalType required for portals" },
+        { status: 400 },
+      );
+    }
     const validCategories = [
       "For Schools",
       "For Students",
@@ -33,7 +39,12 @@ export async function PUT(req, { params }) {
 
     const bulkOps = updates.map(({ _id, order }) => ({
       updateOne: {
-        filter: { _id: new mongoose.Types.ObjectId(_id), siteId, category },
+        filter: {
+          _id: new mongoose.Types.ObjectId(_id),
+          siteId,
+          category,
+          ...(portalType ? { portalType } : {}),
+        },
         update: { $set: { order } },
       },
     }));

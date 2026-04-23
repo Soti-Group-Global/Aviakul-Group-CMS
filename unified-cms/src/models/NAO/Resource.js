@@ -32,10 +32,17 @@ const ResourceSchema = new mongoose.Schema(
       default: 0,
     },
     siteId: {
-      type: String
+      type: String,
       // type: mongoose.Schema.Types.ObjectId,
       // ref: "Site",
       // required: true,
+    },
+
+    portalType: {
+      type: String,
+      enum: ["school", "student", "website"],
+      // required: true,
+      default: null,
     },
   },
   { timestamps: true },

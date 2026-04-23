@@ -9,14 +9,23 @@ export async function GET(req, { params }) {
   await connectDB();
   const { id } = await params;
 
-//   if (!mongoose.Types.ObjectId.isValid(id)) {
-//     return Response.json(
-//       { success: false, message: "Invalid ID" },
-//       { status: 400 },
-//     );
-//   }
+  //   if (!mongoose.Types.ObjectId.isValid(id)) {
+  //     return Response.json(
+  //       { success: false, message: "Invalid ID" },
+  //       { status: 400 },
+  //     );
+  //   }
 
-  const resource = await Resource.findById(id).populate("siteId", "name");
+  const { searchParams } = new URL(req.url);
+  const siteId = searchParams.get("siteId");
+  const portalType = searchParams.get("portalType");
+
+  const resource = await Resource.findOne({
+    _id: id,
+    ...(siteId ? { siteId } : {}),
+    ...(portalType ? { portalType } : {}),
+  }).populate("siteId", "name");
+
   if (!resource) {
     return Response.json(
       { success: false, message: "Resource not found" },
@@ -48,6 +57,7 @@ export async function PUT(req, { params }) {
     // const status = formData.get("status");
     const order = formData.get("order");
     const file = formData.get("file"); // optional
+    const portalType = formData.get("portalType");
 
     const existingResource = await Resource.findById(id);
     if (!existingResource) {
@@ -138,6 +148,10 @@ export async function PUT(req, { params }) {
     // if (status !== null) updateData.status = status;
     if (order !== null) updateData.order = parseInt(order);
     updateData.fileId = fileId;
+
+    if (siteId === "portals" && portalType !== null) {
+      updateData.portalType = portalType;
+    }
 
     const updatedResource = await Resource.findByIdAndUpdate(id, updateData, {
       new: true,
