@@ -254,12 +254,19 @@ export const NAOResources = ({
 
   // console.log("portalType FE:", portalType);
 
-  const categories = [
+  const ALL_CATEGORIES = [
     "For Schools",
     "For Students",
     "For Coordinators",
     "Media Resources",
   ];
+
+  const categories =
+    portalType === "school"
+      ? ["For Schools", "Media Resources"]
+      : portalType === "student"
+        ? ["For Students", "Media Resources"]
+        : ALL_CATEGORIES;
 
   const resourcesByCategory = categories.reduce((acc, cat) => {
     acc[cat] = resources
@@ -435,7 +442,9 @@ export const NAOResources = ({
           </div>
         </div>
       ) : (
-        <div className="grid md:grid-cols-4 gap-6">
+        <div
+          className={`grid ${portalType === "school" || portalType === "student" ? "md:grid-cols-2" : "md:grid-cols-4"} gap-6`}
+        >
           {categories.map((cat) => (
             <CategorySection
               key={cat}
