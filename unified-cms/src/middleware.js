@@ -7,8 +7,6 @@ const allowedOrigins = [
   "http://localhost:3002",
   "http://localhost:5173",
   "https://your-frontend.com",
-  "https://www.aviationolympiad.com",
-  "https://aviationolympiad.com",
 ];
 
 export function middleware(req) {
