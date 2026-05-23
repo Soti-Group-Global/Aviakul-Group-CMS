@@ -27,7 +27,7 @@ export async function POST(req) {
     });
 
     await transporter.sendMail({
-      from: `"NAO 2026" <${process.env.EMAIL_USER}>`,
+      from: `"NAO Exam" <nao@thecso.in>`,
       to: email,
       subject: "NAO 2026 Sponsorship Brochure",
       html: `
@@ -76,7 +76,7 @@ export async function POST(req) {
     });
 
     await transporter.sendMail({
-      from: `"NAO 2026" <${process.env.EMAIL_USER}>`,
+      from: `"NAO Exam" <nao@thecso.in>`,
       to: "nao@thecso.in",
       subject: "New Sponsorship Brochure Request",
       html: `
