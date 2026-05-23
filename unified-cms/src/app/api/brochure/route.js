@@ -27,7 +27,7 @@ export async function POST(req) {
     });
 
     await transporter.sendMail({
-      from: `"NAO 2026" <${process.env.SMTP_USER}>`,
+      from: `"NAO 2026" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: "NAO 2026 Sponsorship Brochure",
       html: `
@@ -73,6 +73,49 @@ export async function POST(req) {
           path: process.cwd() + "/public/NAO_2026_Sponsorship_Brochure.pdf",
         },
       ],
+    });
+
+    await transporter.sendMail({
+      from: `"NAO 2026" <${process.env.EMAIL_USER}>`,
+      to: "nao@thecso.in",
+      subject: "New Sponsorship Brochure Request",
+      html: `
+    <div style="font-family: Arial, sans-serif; line-height:1.6;">
+      <h2>New Sponsorship Brochure Request</h2>
+
+      <table cellpadding="8" cellspacing="0" border="1" style="border-collapse: collapse;">
+        <tr>
+          <td><strong>Full Name</strong></td>
+          <td>${fullName}</td>
+        </tr>
+
+        <tr>
+          <td><strong>Organization</strong></td>
+          <td>${organization}</td>
+        </tr>
+
+        <tr>
+          <td><strong>Designation</strong></td>
+          <td>${designation}</td>
+        </tr>
+
+        <tr>
+          <td><strong>Email</strong></td>
+          <td>${email}</td>
+        </tr>
+
+        <tr>
+          <td><strong>Phone</strong></td>
+          <td>${phone}</td>
+        </tr>
+
+        <tr>
+          <td><strong>Partnership Tier</strong></td>
+          <td>${tier || "Not selected"}</td>
+        </tr>
+      </table>
+    </div>
+  `,
     });
 
     return Response.json({
