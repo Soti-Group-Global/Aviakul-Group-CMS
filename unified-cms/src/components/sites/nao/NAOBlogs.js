@@ -365,9 +365,8 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
       .split(",")
       .map((t) => t.trim())
       .filter(Boolean);
-    if (tags.length) {
-      payload.append("tags", tags.join(","));
-    }
+    // Always send tags so the API can clear them when the field is emptied
+    payload.append("tags", tags.join(","));
 
     try {
       let url, method;

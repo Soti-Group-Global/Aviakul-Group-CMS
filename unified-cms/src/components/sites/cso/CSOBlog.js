@@ -2,32 +2,7 @@
 import CommonRichTextEditor from "../../common/CommonRichTextEditor.jsx";
 import { useState, useEffect } from "react";
 import { confirmDelete, showToast } from "@/lib/deleteAlert";
-
-// ---------- Icons ----------
-const icons = {
-  plus: "M12 4v16m8-8H4",
-  edit: "M16.5 3.5L20.5 7.5M4 20L7.5 19L18.5 8L20.5 6L16.5 2L14.5 4L3.5 15L4 20Z",
-  trash:
-    "M4 7h16M10 11v6M14 11v6M5 7l1 13a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-13M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3",
-  image:
-    "M4 16l4.586-4.586a2 2 0 0 1 2.828 0L16 16m-2-2l1.586-1.586a2 2 0 0 1 2.828 0L20 14m-6-6h.01M6 20h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z",
-  chevronDown: "M6 9l6 6 6-6",
-};
-
-const Icon = ({ d, size = 20, color = "currentColor" }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke={color}
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d={d} />
-  </svg>
-);
+import { XIcon, Pencil, Trash2, Plus, Image as ImageIcon, ChevronDown } from "lucide-react";
 
 // ---------- SectionHeader (light theme) ----------
 const SectionHeader = ({ title, count, accent, onAdd }) => (
@@ -47,7 +22,7 @@ const SectionHeader = ({ title, count, accent, onAdd }) => (
       className="flex items-center gap-2 border-none rounded-lg px-4 py-2 text-sm font-semibold cursor-pointer transition-all hover:shadow-md active:scale-95 shadow-sm"
       style={{ backgroundColor: accent, color: "#fff" }}
     >
-      <Icon d={icons.plus} size={16} /> Add Blog
+      <Plus size={16} /> Add Blog
     </button>
   </div>
 );
@@ -73,22 +48,22 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-// ---------- DataTable (light theme, card-like) ----------
+// ---------- DataTable (light theme, card-like, fixed layout) ----------
 const DataTable = ({ columns, rows, accent, onEdit, onDelete }) => (
   <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
-    <table className="w-full border-collapse text-sm">
+    <table className="w-full border-collapse text-sm table-fixed">
       <thead>
         <tr className="bg-gray-50 border-b border-gray-200">
           {columns.map((col) => (
             <th
               key={col.key}
-              className="px-4 py-3 text-left text-xs text-gray-500 uppercase tracking-wider font-semibold whitespace-nowrap"
+              className={`px-4 py-3 text-left text-xs text-gray-500 uppercase tracking-wider font-semibold ${col.width || ""}`}
             >
               {col.label}
             </th>
           ))}
           {(onEdit || onDelete) && (
-            <th className="px-4 py-3 text-right text-xs text-gray-500 uppercase tracking-wider font-semibold">
+            <th className="px-4 py-3 text-right text-xs text-gray-500 uppercase tracking-wider font-semibold w-[100px]">
               Actions
             </th>
           )}
@@ -103,27 +78,27 @@ const DataTable = ({ columns, rows, accent, onEdit, onDelete }) => (
             {columns.map((col) => (
               <td
                 key={col.key}
-                className="px-4 py-3 text-gray-700 whitespace-nowrap"
+                className={`px-4 py-3 text-gray-700 align-top ${col.cellClass || ""}`}
               >
                 {col.render ? col.render(row[col.key], row) : row[col.key]}
               </td>
             ))}
             {(onEdit || onDelete) && (
-              <td className="px-4 py-3 text-right whitespace-nowrap">
+              <td className="px-4 py-3 text-right align-top">
                 <div className="flex gap-2 justify-end">
                   <button
                     onClick={() => onEdit(row)}
                     className="bg-gray-100 rounded-lg p-1.5 text-gray-600 hover:bg-gray-200 transition"
                     title="Edit"
                   >
-                    <Icon d={icons.edit} size={14} />
+                    <Pencil size={14} />
                   </button>
                   <button
                     onClick={() => onDelete(row)}
                     className="bg-red-50 rounded-lg p-1.5 text-red-500 hover:bg-red-100 transition"
                     title="Delete"
                   >
-                    <Icon d={icons.trash} size={14} />
+                    <Trash2 size={14} />
                   </button>
                 </div>
               </td>
@@ -159,7 +134,7 @@ const FilterBar = ({
         <option value="archived">Archived</option>
       </select>
       <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-        <Icon d={icons.chevronDown} size={12} />
+        <ChevronDown size={14} />
       </div>
     </div>
     <div className="relative">
@@ -173,7 +148,7 @@ const FilterBar = ({
         <option value="oldest">Oldest First</option>
       </select>
       <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-        <Icon d={icons.chevronDown} size={12} />
+        <ChevronDown size={14} />
       </div>
     </div>
     {/* Tag filter dropdown */}
@@ -191,29 +166,31 @@ const FilterBar = ({
         ))}
       </select>
       <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-        <Icon d={icons.chevronDown} size={12} />
+        <ChevronDown size={14} />
       </div>
     </div>
   </div>
 );
 
-// ---------- Modal (already light friendly, keep as is) ----------
+// ---------- Modal (light, polished) ----------
 const Modal = ({ isOpen, onClose, title, children, isSubmitting }) => {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-6 md:p-0">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl p-5 relative animate-in fade-in zoom-in duration-200 max-h-[94vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-5  top-0 bg-white py-2">
-          <h3 className="text-xl font-bold text-gray-800">{title}</h3>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4 py-6">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl relative animate-in fade-in zoom-in duration-200 max-h-[90vh] flex flex-col">
+        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100 flex-shrink-0">
+          <h3 className="text-lg font-bold text-gray-800">{title}</h3>
           <button
             onClick={onClose}
             disabled={isSubmitting}
-            className="text-gray-400 hover:text-gray-600 text-2xl leading-none disabled:opacity-50"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 text-xl leading-none disabled:opacity-50 transition-colors"
           >
-            ×
+            <XIcon className="w-5 h-5"/>
           </button>
         </div>
-        {children}
+        <div className="flex-1 overflow-y-auto px-6 py-5">
+          {children}
+        </div>
       </div>
     </div>
   );
@@ -229,15 +206,19 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
     title: "",
     content: "",
     status: "draft",
+    section: "news",
     order: 0,
   });
   const [tagsInput, setTagsInput] = useState("");
   const [imageFile, setImageFile] = useState(null);
+  const [imageFiles, setImageFiles] = useState([]); // new images to upload
+  const [existingImages, setExistingImages] = useState([]); // existing image IDs to keep
   const [error, setError] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("order");
   const [tagFilter, setTagFilter] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [publishedDateInput, setPublishedDateInput] = useState("");
 
   // Derive unique tags from blogs
   const uniqueTags = Array.from(
@@ -294,11 +275,14 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
   }, [statusFilter, sortBy, tagFilter]);
 
   const resetModal = () => {
-    setFormData({ title: "", content: "", status: "draft", order: 0 });
+    setFormData({ title: "", content: "", status: "draft", section: "news", order: 0 });
     setTagsInput("");
     setImageFile(null);
+    setImageFiles([]);
+    setExistingImages([]);
     setEditingBlog(null);
     setError("");
+    setPublishedDateInput("");
   };
 
   const openCreateModal = () => {
@@ -312,10 +296,42 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
       title: blog.title,
       content: blog.content || "",
       status: blog.status,
+      section: blog.section || "news",
       order: blog.order || 0,
     });
     setTagsInput((blog.tags || []).join(", "));
+    // Set publishedDate for editing (format as YYYY-MM-DDTHH:mm for datetime-local input)
+    const dateSource = blog.publishedDate;
+    if (dateSource) {
+      const d = new Date(dateSource);
+      const pad = (n) => String(n).padStart(2, "0");
+      setPublishedDateInput(
+        `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+      );
+    } else {
+      setPublishedDateInput("");
+    }
     setImageFile(null);
+    setImageFiles([]);
+    // Load existing images (multi-image support)
+    if (blog.imageFileIds && blog.imageFileIds.length > 0) {
+      setExistingImages(
+        blog.imageFileIds.map((id, idx) => ({
+          id: id.toString ? id.toString() : id,
+          filename: blog.imageFilenames?.[idx] || `Image ${idx + 1}`,
+        }))
+      );
+    } else if (blog.imageFileId) {
+      // Legacy: single image
+      setExistingImages([
+        {
+          id: blog.imageFileId.toString ? blog.imageFileId.toString() : blog.imageFileId,
+          filename: blog.imageFilename || "Current image",
+        },
+      ]);
+    } else {
+      setExistingImages([]);
+    }
     setModalOpen(true);
   };
 
@@ -359,15 +375,34 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
     payload.append("content", formData.content);
     payload.append("siteId", siteId);
     payload.append("status", formData.status);
+    payload.append("section", formData.section);
     payload.append("order", formData.order.toString());
-    if (imageFile) payload.append("imageFile", imageFile);
+
+    // Multi-image handling
+    if (imageFiles.length > 0) {
+      imageFiles.forEach((file) => {
+        payload.append("imageFiles", file);
+      });
+    }
+
+    // When editing, send the existing images to keep
+    if (editingBlog) {
+      payload.append("existingImageIds", JSON.stringify(existingImages.map((img) => img.id)));
+    }
 
     const tags = tagsInput
       .split(",")
       .map((t) => t.trim())
       .filter(Boolean);
-    if (tags.length) {
-      payload.append("tags", tags.join(","));
+    // Always send tags so the API can clear them when the field is emptied
+    payload.append("tags", tags.join(","));
+
+    // Send publishedDate only when editing an existing blog
+    if (editingBlog) {
+      payload.append(
+        "publishedDate",
+        publishedDateInput ? new Date(publishedDateInput).toISOString() : ""
+      );
     }
 
     try {
@@ -400,46 +435,81 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
     {
       key: "thumbnail",
       label: "Image",
-      render: (_, row) => (
-        <div className="w-10 h-10 rounded-md overflow-hidden bg-gray-100 flex items-center justify-center">
-          {row.imageFileId ? (
-            <img
-              src={getImageUrl(row.imageFileId)}
-              alt={row.title}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <Icon d={icons.image} size={18} color="#9ca3af" />
-          )}
-        </div>
-      ),
+      width: "w-[60px]",
+      render: (_, row) => {
+        const primaryId =
+          row.imageFileIds && row.imageFileIds.length > 0
+            ? row.imageFileIds[0]
+            : row.imageFileId;
+        const count =
+          row.imageFileIds && row.imageFileIds.length > 0
+            ? row.imageFileIds.length
+            : row.imageFileId
+              ? 1
+              : 0;
+        return (
+          <div className="relative w-10 h-10 rounded-md overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
+            {primaryId ? (
+              <>
+                <img
+                  src={getImageUrl(primaryId)}
+                  alt={row.title}
+                  className="w-full h-full object-cover"
+                />
+                {count > 1 && (
+                  <span className="absolute bottom-0 right-0 bg-black/60 text-white text-[9px] px-1 rounded-tl">
+                    +{count - 1}
+                  </span>
+                )}
+              </>
+            ) : (
+              <ImageIcon size={18} className="text-gray-400" />
+            )}
+          </div>
+        );
+      },
     },
     {
       key: "title",
       label: "Title",
-      render: (v) => <span className="font-medium text-gray-800">{v}</span>,
+      width: "w-[22%]",
+      cellClass: "whitespace-normal",
+      render: (v) => (
+        <span className="font-medium text-gray-800 line-clamp-2 block leading-snug">
+          {v}
+        </span>
+      ),
     },
     {
       key: "content",
       label: "Content",
-      render: (v) => (
-        <div
-          className="text-gray-500 text-xs max-w-xs prose prose-xs"
-          dangerouslySetInnerHTML={{ __html: v || "—" }}
-        />
-      ),
+      width: "w-[30%]",
+      cellClass: "whitespace-normal",
+      render: (v) => {
+        // Strip HTML tags and truncate to plain text preview
+        const plainText = v
+          ? v.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim()
+          : "";
+        return (
+          <span className="text-gray-500 text-xs leading-relaxed line-clamp-2 block">
+            {plainText || "—"}
+          </span>
+        );
+      },
     },
     {
       key: "tags",
       label: "Tags",
+      width: "w-[12%]",
+      cellClass: "whitespace-normal",
       render: (tags) => {
-        if (!tags || tags.length === 0) return "—";
+        if (!tags || tags.length === 0) return <span className="text-gray-400">—</span>;
         return (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-wrap gap-1">
             {tags.map((tag, i) => (
               <span
                 key={i}
-                className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs whitespace-nowrap"
+                className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-[11px] whitespace-nowrap"
               >
                 {tag}
               </span>
@@ -449,16 +519,28 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
       },
     },
     {
+      key: "section",
+      label: "Section",
+      width: "w-[10%]",
+      render: (v) => (
+        <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium capitalize whitespace-nowrap">
+          {v || "news"}
+        </span>
+      ),
+    },
+    {
       key: "status",
       label: "Status",
+      width: "w-[10%]",
       render: (v) => <StatusBadge status={v} />,
     },
     {
-      key: "createdAt",
-      label: "Created",
+      key: "publishedDate",
+      label: "Published",
+      width: "w-[10%]",
       render: (v) => (
-        <span className="text-gray-500 text-xs">
-          {new Date(v).toLocaleDateString()}
+        <span className="text-gray-500 text-xs whitespace-nowrap">
+          {v ? new Date(v).toLocaleDateString() : "—"}
         </span>
       ),
     },
@@ -488,7 +570,7 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
         </div>
       ) : blogs.length === 0 ? (
         <div className="text-center py-16 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-          <Icon d={icons.image} size={48} color="#9ca3af" />
+          <ImageIcon size={48} className="text-gray-400 mx-auto" />
           <p className="text-gray-400 mt-3">
             No blogs match the selected filters.
           </p>
@@ -511,8 +593,8 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
       >
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Title *
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Title <span className="text-red-400">*</span>
             </label>
             <input
               type="text"
@@ -520,16 +602,18 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
               }
-              className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter blog title"
+              className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
               required
               disabled={isSubmitting}
             />
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
               Content
             </label>
-            <div className="resize-y overflow-auto min-h-[180px] max-h-[600px] border border-gray-200 rounded-lg">
+            <div>
               <CommonRichTextEditor
                 value={formData.content}
                 onChange={(html) => setFormData({ ...formData, content: html })}
@@ -537,75 +621,181 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
               />
             </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Status
-            </label>
-            <select
-              value={formData.status}
-              onChange={(e) =>
-                setFormData({ ...formData, status: e.target.value })
-              }
-              className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm"
-              disabled={isSubmitting}
-            >
-              <option value="draft">Draft</option>
-              <option value="published">Published</option>
-              {/* <option value="archived">Archived</option> */}
-            </select>
+
+          <div className={`grid grid-cols-1 gap-4 ${editingBlog && formData.status === "published" ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Section <span className="text-red-400">*</span>
+              </label>
+              <select
+                value={formData.section}
+                onChange={(e) =>
+                  setFormData({ ...formData, section: e.target.value })
+                }
+                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
+                disabled={isSubmitting}
+              >
+                <option value="news">News</option>
+                <option value="events">Events</option>
+                <option value="stories">Stories</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Status <span className="text-red-400">*</span>
+              </label>
+              <select
+                value={formData.status}
+                onChange={(e) =>
+                  setFormData({ ...formData, status: e.target.value })
+                }
+                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
+                disabled={isSubmitting}
+              >
+                <option value="draft">Draft</option>
+                <option value="published">Published</option>
+              </select>
+            </div>
+
+            {editingBlog && formData.status === "published" && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Published Date
+                </label>
+                <input
+                  type="datetime-local"
+                  value={publishedDateInput}
+                  onChange={(e) => setPublishedDateInput(e.target.value)}
+                  className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
+                  disabled={isSubmitting}
+                />
+              </div>
+            )}
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Tags (comma‑separated)
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Tags <span className="text-gray-400 font-normal">(comma‑separated)</span>
             </label>
             <input
               type="text"
               value={tagsInput}
               onChange={(e) => setTagsInput(e.target.value)}
-              placeholder="eg: tag1, tag2, tag3"
-              className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="tag1, tag2, tag3"
+              className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
               disabled={isSubmitting}
             />
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Featured Image (optional)
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Images <span className="text-gray-400 font-normal">(multiple allowed)</span>
             </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setImageFile(e.target.files[0])}
-              className="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-              disabled={isSubmitting}
-            />
-            {editingBlog && editingBlog.imageFileId && (
-              <p className="text-xs text-black-900 mt-1 font-bold">
-                Current file:{" "}
-                <span className="text-gray-500">
-                  {editingBlog.imageFilename}
-                </span>
-                {/* Current image will be kept if you leave this empty. */}
-              </p>
+            <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-colors">
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => {
+                  const files = Array.from(e.target.files);
+                  setImageFiles((prev) => [...prev, ...files]);
+                }}
+                className="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 file:cursor-pointer"
+                disabled={isSubmitting}
+              />
+            </div>
+            {/* Existing images (when editing) */}
+            {existingImages.length > 0 && (
+              <div className="mt-3">
+                <p className="text-xs font-semibold text-gray-600 mb-2">
+                  Existing images ({existingImages.length}):
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {existingImages.map((img, idx) => (
+                    <div key={img.id} className="relative group">
+                      <img
+                        src={getImageUrl(img.id)}
+                        alt={img.filename}
+                        className="w-20 h-20 object-cover rounded-lg border border-gray-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExistingImages((prev) =>
+                            prev.filter((_, i) => i !== idx)
+                          )
+                        }
+                        disabled={isSubmitting}
+                        className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Remove"
+                      >
+                        ×
+                      </button>
+                      <p className="text-[10px] text-gray-400 text-center mt-0.5 max-w-[80px] truncate">
+                        {img.filename}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {/* New images preview */}
+            {imageFiles.length > 0 && (
+              <div className="mt-3">
+                <p className="text-xs font-semibold text-gray-600 mb-2">
+                  New images to upload ({imageFiles.length}):
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {imageFiles.map((file, idx) => (
+                    <div key={idx} className="relative group">
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt={file.name}
+                        className="w-20 h-20 object-cover rounded-lg border border-gray-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setImageFiles((prev) =>
+                            prev.filter((_, i) => i !== idx)
+                          )
+                        }
+                        disabled={isSubmitting}
+                        className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Remove"
+                      >
+                        ×
+                      </button>
+                      <p className="text-[10px] text-gray-400 text-center mt-0.5 max-w-[80px] truncate">
+                        {file.name}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
+
           {error && (
-            <div className="text-red-500 text-sm bg-red-50 p-2 rounded-lg">
+            <div className="text-red-600 text-sm bg-red-50 border border-red-100 px-4 py-2.5 rounded-xl">
               {error}
             </div>
           )}
-          <div className="flex justify-end gap-3 pt-3">
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
             <button
               type="button"
               onClick={() => !isSubmitting && setModalOpen(false)}
               disabled={isSubmitting}
-              className="px-5 py-2 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
+              className="px-5 py-2.5 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2 rounded-xl text-sm font-medium text-white shadow-sm transition hover:opacity-90 disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl text-sm font-medium text-white shadow-sm transition hover:opacity-90 disabled:opacity-50"
               style={{ backgroundColor: accent }}
             >
               {isSubmitting
@@ -613,8 +803,8 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
                   ? "Updating..."
                   : "Creating..."
                 : editingBlog
-                  ? "Update"
-                  : "Create"}
+                  ? "Update Blog"
+                  : "Create Blog"}
             </button>
           </div>
         </form>

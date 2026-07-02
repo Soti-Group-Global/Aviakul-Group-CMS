@@ -9,8 +9,14 @@ const BlogSchema = new mongoose.Schema(
     },
     imageFileId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "fs.files", // GridFS reference
+      ref: "fs.files", // GridFS reference (legacy single image)
     },
+    imageFileIds: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "fs.files", // GridFS references for multiple images
+      },
+    ],
     siteId: {
       type: String
       // type: mongoose.Schema.Types.ObjectId,
@@ -20,6 +26,11 @@ const BlogSchema = new mongoose.Schema(
     content: {
       type: String,
       default: "",
+    },
+    section: {
+      type: String,
+      enum: ["news", "events", "stories"],
+      default: "news",
     },
     status: {
       type: String,
@@ -35,6 +46,10 @@ const BlogSchema = new mongoose.Schema(
     order: {
       type: Number,
       default: 0,
+    },
+    publishedDate: {
+      type: Date,
+      default: null,
     },
   },
   { timestamps: true },
@@ -55,6 +70,7 @@ BlogSchema.index({ status: 1 });
 BlogSchema.index({ createdAt: -1 });
 BlogSchema.index({ imageFileId: 1 });
 BlogSchema.index({ order: 1 });
+BlogSchema.index({ publishedDate: -1 });
 
 const Blog = mongoose.models.Blog || mongoose.model("Blog", BlogSchema);
 

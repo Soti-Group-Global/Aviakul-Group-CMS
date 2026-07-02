@@ -1,94 +1,95 @@
+/* ─── Container ─── */
 .rte-container {
-  border: 1px solid #d1d5db;
-  border-radius: 7px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
   overflow: hidden;
   background: #fff;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 .rte-container:focus-within {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
 }
 
+/* ─── Toolbar ─── */
 .rte-toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 2px;
-  padding: 5px 8px;
-  background: #f8f9fa;
+  padding: 8px 10px;
+  background: #f9fafb;
   border-bottom: 1px solid #e5e7eb;
   position: relative;
-  min-height: 38px;
-  overflow: visible;   /* FIX 1: allow dropdown to expand */
+  min-height: 42px;
+  overflow: visible;
 }
 
+/* ─── Toolbar Button ─── */
 .rte-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 30px;
-  height: 30px;
+  min-width: 32px;
+  height: 32px;
   padding: 0 6px;
   border: 1px solid transparent;
-  border-radius: 4px;
+  border-radius: 6px;
   background: transparent;
-  color: #374151;
+  color: #4b5563;
   font-size: 13px;
   font-family: inherit;
   cursor: pointer;
-  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
   line-height: 1;
   user-select: none;
 }
 .rte-btn:hover {
-  background: #e9ecef;
-  border-color: #dee2e6;
+  background: #f3f4f6;
+  border-color: #e5e7eb;
+  color: #111827;
 }
 .rte-btn--active {
-  background: #dbeafe;
-  border-color: #93c5fd;
-  color: #1d4ed8;
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #2563eb;
 }
 
+/* ─── Separator ─── */
 .rte-sep {
   width: 1px;
-  height: 22px;
-  background: #dee2e6;
-  margin: 0 4px;
+  height: 20px;
+  background: #e5e7eb;
+  margin: 0 6px;
   flex-shrink: 0;
 }
 
+/* ─── Select Dropdowns ─── */
 .rte-select {
-  height: 30px;
-  padding: 0 6px;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
   background: #fff;
   color: #374151;
   font-size: 12px;
   font-family: inherit;
   cursor: pointer;
   outline: none;
-  min-width: 90px;
+  min-width: 100px;
+  transition: border-color 0.15s;
 }
 .rte-select:hover {
-  border-color: #adb5bd;
+  border-color: #d1d5db;
+}
+.rte-select:focus {
+  border-color: #3b82f6;
 }
 .rte-select--font {
-  min-width: 120px;
+  min-width: 130px;
 }
 
-.rte-icon {
-  font-size: 14px;
-  line-height: 1;
-  font-style: normal;
-}
-.rte-icon--danger {
-  color: #ef4444;
-}
-
-/* FIX 1: Color dropdown – align to the right, avoid clipping */
+/* ─── Color Picker ─── */
 .rte-color-wrap {
   position: relative;
   display: inline-flex;
@@ -96,102 +97,93 @@
 .rte-color-btn {
   padding: 0 5px;
 }
-.rte-color-letter {
-  font-weight: 700;
-  font-size: 14px;
-  border-bottom: 3px solid #000;
-  padding-bottom: 1px;
-  line-height: 1;
-}
-.rte-color-letter--bg {
-  border-bottom: none;
-  padding: 1px 3px;
-  border-radius: 2px;
-}
 .rte-color-dropdown {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 6px);
   right: 0;
   left: auto;
   z-index: 1000;
   display: grid;
-  grid-template-columns: repeat(7, 26px);
-  gap: 3px;
-  padding: 8px;
+  grid-template-columns: repeat(7, 28px);
+  gap: 4px;
+  padding: 10px;
   background: #fff;
-  border: 1px solid #dee2e6;
-  border-radius: 6px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  margin-top: 4px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 .rte-color-swatch {
-  width: 26px;
-  height: 26px;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
   cursor: pointer;
   transition: transform 0.1s, box-shadow 0.1s;
 }
 .rte-color-swatch:hover {
   transform: scale(1.15);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   z-index: 1;
 }
 .rte-color-reset {
   grid-column: 1 / -1;
-  margin-top: 4px;
-  padding: 4px 0;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
-  background: #f8f9fa;
+  margin-top: 6px;
+  padding: 5px 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #f9fafb;
   color: #6b7280;
   font-size: 11px;
   cursor: pointer;
   text-align: center;
+  transition: background 0.15s;
 }
 .rte-color-reset:hover {
-  background: #e9ecef;
+  background: #f3f4f6;
 }
 
+/* ─── Source Editor Overlay ─── */
 .rte-source-overlay {
   position: absolute;
   inset: 100% 0 auto 0;
   z-index: 50;
   padding: 8px;
   background: #1e1e2e;
-  border-top: 1px solid #444;
+  border-top: 1px solid #374151;
+  border-radius: 0 0 12px 12px;
 }
 .rte-source-textarea {
   width: 100%;
   min-height: 150px;
-  padding: 10px;
+  padding: 12px;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   background: #282a36;
   color: #f8f8f2;
   font-family: "Consolas", "Courier New", monospace;
   font-size: 12.5px;
-  line-height: 1.5;
+  line-height: 1.6;
   resize: vertical;
   outline: none;
   box-sizing: border-box;
 }
 
+/* ─── Editor Content Area ─── */
 .rte-content {
-  min-height: 120px;
+  min-height: 160px;
 }
 .rte-content .tiptap {
-  min-height: 120px;
-  padding: 12px 16px;
-  font-size: 13.5px;
+  min-height: 160px;
+  padding: 16px 20px;
+  font-size: 14px;
   color: #1f2937;
-  line-height: 1.65;
+  line-height: 1.7;
   outline: none;
 }
 .rte-content .tiptap p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
-  color: #c0c5cc;
-  font-style: italic;
+  color: #9ca3af;
+  font-style: normal;
   pointer-events: none;
   float: left;
   height: 0;
@@ -207,7 +199,7 @@
 .rte-content .tiptap p { margin: 0 0 0.5em; }
 .rte-content .tiptap p:last-child { margin-bottom: 0; }
 
-/* FIX 2: Lists – show bullets and numbers */
+/* Lists */
 .rte-content .tiptap ul {
   list-style-type: disc;
   padding-left: 1.5em;
@@ -231,7 +223,7 @@
 
 /* Blockquote */
 .rte-content .tiptap blockquote {
-  border-left: 3px solid #d1d5db;
+  border-left: 3px solid #e5e7eb;
   padding-left: 1em;
   margin: 0.5em 0;
   color: #6b7280;
@@ -246,13 +238,13 @@
 }
 .rte-content .tiptap th,
 .rte-content .tiptap td {
-  border: 1px solid #d1d5db;
-  padding: 6px 10px;
+  border: 1px solid #e5e7eb;
+  padding: 8px 12px;
   font-size: 13px;
   text-align: left;
 }
 .rte-content .tiptap th {
-  background: #f3f4f6;
+  background: #f9fafb;
   font-weight: 600;
 }
 
@@ -264,9 +256,9 @@
 
 /* Code */
 .rte-content .tiptap code {
-  background: #f1f3f5;
-  padding: 2px 5px;
-  border-radius: 3px;
+  background: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 4px;
   font-size: 0.9em;
 }
 
@@ -280,5 +272,5 @@
 /* Image */
 .rte-content .tiptap img {
   max-width: 100%;
-  border-radius: 4px;
+  border-radius: 6px;
 }
