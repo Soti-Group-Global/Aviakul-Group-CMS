@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
@@ -17,38 +16,50 @@ import { TableHeader } from "@tiptap/extension-table-header";
 import Placeholder from "@tiptap/extension-placeholder";
 import Subscript from "@tiptap/extension-subscript";
 import Superscript from "@tiptap/extension-superscript";
+import {
+  Code,
+  Undo2,
+  Redo2,
+  Bold,
+  Italic,
+  Underline as UnderlineIcon,
+  Strikethrough,
+  Subscript as SubscriptIcon,
+  Superscript as SuperscriptIcon,
+  Link as LinkIcon,
+  Palette,
+  Highlighter,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlignJustify,
+  List,
+  ListOrdered,
+  RemoveFormatting,
+  Table as TableIcon,
+  Trash2,
+  Indent,
+  Outdent,
+  TableColumnsSplit,
+  TableRowsSplit,
+  BetweenHorizontalStart,
+  BetweenHorizontalEnd,
+  BetweenVerticalStart,
+  BetweenVerticalEnd,
+} from "lucide-react";
 import "./RichTextEditor.css";
 
 /* ─── Preset colors ─── */
 const COLOR_PRESETS = [
-  "#000000",
-  "#434343",
-  "#666666",
-  "#999999",
-  "#cccccc",
-  "#efefef",
-  "#ffffff",
-  "#e74c3c",
-  "#e67e22",
-  "#f1c40f",
-  "#2ecc71",
-  "#1abc9c",
-  "#3498db",
-  "#9b59b6",
-  "#c0392b",
-  "#d35400",
-  "#f39c12",
-  "#27ae60",
-  "#16a085",
-  "#2980b9",
-  "#8e44ad",
+  "#000000", "#434343", "#666666", "#999999", "#cccccc", "#efefef", "#ffffff",
+  "#e74c3c", "#e67e22", "#f1c40f", "#2ecc71", "#1abc9c", "#3498db", "#9b59b6",
+  "#c0392b", "#d35400", "#f39c12", "#27ae60", "#16a085", "#2980b9", "#8e44ad",
 ];
 
 /* ═══════════════════════════════════════════════════════════
    Toolbar
    ═══════════════════════════════════════════════════════════ */
 const CommonToolbar = ({ editor }) => {
-  const { t } = useTranslation("rich_text_editor");
   const [showSource, setShowSource] = useState(false);
   const [sourceHtml, setSourceHtml] = useState("");
   const [showColorPicker, setShowColorPicker] = useState(false);
@@ -79,14 +90,14 @@ const CommonToolbar = ({ editor }) => {
     }
   };
 
-  const btn = (active, onClick, children, title) => (
+  const btn = (active, onClick, icon, title) => (
     <button
       type="button"
       className={`rte-btn${active ? " rte-btn--active" : ""}`}
       onClick={onClick}
       title={title}
     >
-      {children}
+      {icon}
     </button>
   );
 
@@ -95,42 +106,23 @@ const CommonToolbar = ({ editor }) => {
   return (
     <div className="rte-toolbar">
       {/* Source */}
-      {btn(
-        showSource,
-        toggleSource,
-        <span className="rte-icon">&lt;&gt;</span>,
-        t("html"),
-      )}
+      {btn(showSource, toggleSource, <Code size={15} />, "HTML Source")}
       {sep()}
 
       {/* Undo / Redo */}
-      {btn(
-        false,
-        () => editor.chain().focus().undo().run(),
-        <span className="rte-icon">↩</span>,
-        t("undo"),
-      )}
-      {btn(
-        false,
-        () => editor.chain().focus().redo().run(),
-        <span className="rte-icon">↪</span>,
-        t("redo"),
-      )}
+      {btn(false, () => editor.chain().focus().undo().run(), <Undo2 size={15} />, "Undo")}
+      {btn(false, () => editor.chain().focus().redo().run(), <Redo2 size={15} />, "Redo")}
       {sep()}
 
       {/* Heading dropdown */}
       <select
         className="rte-select"
         value={
-          editor.isActive("heading", { level: 1 })
-            ? 1
-            : editor.isActive("heading", { level: 2 })
-              ? 2
-              : editor.isActive("heading", { level: 3 })
-                ? 3
-                : editor.isActive("heading", { level: 4 })
-                  ? 4
-                  : 0
+          editor.isActive("heading", { level: 1 }) ? 1
+            : editor.isActive("heading", { level: 2 }) ? 2
+            : editor.isActive("heading", { level: 3 }) ? 3
+            : editor.isActive("heading", { level: 4 }) ? 4
+            : 0
         }
         onChange={(e) => {
           const val = Number(e.target.value);
@@ -138,65 +130,31 @@ const CommonToolbar = ({ editor }) => {
           else editor.chain().focus().toggleHeading({ level: val }).run();
         }}
       >
-        <option value={0}>{t("heading_normal")}</option>
-        <option value={1}>{t("heading_1")}</option>
-        <option value={2}>{t("heading_2")}</option>
-        <option value={3}>{t("heading_3")}</option>
-        <option value={4}>{t("heading_4")}</option>
+        <option value={0}>Normal</option>
+        <option value={1}>Heading 1</option>
+        <option value={2}>Heading 2</option>
+        <option value={3}>Heading 3</option>
+        <option value={4}>Heading 4</option>
       </select>
       {sep()}
 
-      {/* Bold / Italic / Underline / Strikethrough */}
-      {btn(
-        editor.isActive("bold"),
-        () => editor.chain().focus().toggleBold().run(),
-        <b>B</b>,
-        t("bold"),
-      )}
-      {btn(
-        editor.isActive("italic"),
-        () => editor.chain().focus().toggleItalic().run(),
-        <i>I</i>,
-        t("italic"),
-      )}
-      {btn(
-        editor.isActive("underline"),
-        () => editor.chain().focus().toggleUnderline().run(),
-        <u>U</u>,
-        t("underline"),
-      )}
-      {btn(
-        editor.isActive("strike"),
-        () => editor.chain().focus().toggleStrike().run(),
-        <s>S</s>,
-        t("strikethrough"),
-      )}
-      {btn(
-        editor.isActive("subscript"),
-        () => editor.chain().focus().toggleSubscript().run(),
-        <span>
-          X<sub>₂</sub>
-        </span>,
-        t("subscript"),
-      )}
-      {btn(
-        editor.isActive("superscript"),
-        () => editor.chain().focus().toggleSuperscript().run(),
-        <span>
-          X<sup>²</sup>
-        </span>,
-        t("superscript"),
-      )}
+      {/* Text formatting */}
+      {btn(editor.isActive("bold"), () => editor.chain().focus().toggleBold().run(), <Bold size={15} />, "Bold")}
+      {btn(editor.isActive("italic"), () => editor.chain().focus().toggleItalic().run(), <Italic size={15} />, "Italic")}
+      {btn(editor.isActive("underline"), () => editor.chain().focus().toggleUnderline().run(), <UnderlineIcon size={15} />, "Underline")}
+      {btn(editor.isActive("strike"), () => editor.chain().focus().toggleStrike().run(), <Strikethrough size={15} />, "Strikethrough")}
+      {btn(editor.isActive("subscript"), () => editor.chain().focus().toggleSubscript().run(), <SubscriptIcon size={15} />, "Subscript")}
+      {btn(editor.isActive("superscript"), () => editor.chain().focus().toggleSuperscript().run(), <SuperscriptIcon size={15} />, "Superscript")}
       {sep()}
 
-      {/* Link - FIXED */}
+      {/* Link */}
       {btn(
         editor.isActive("link"),
         () => {
           if (editor.isActive("link")) {
             editor.chain().focus().unsetLink().run();
           } else {
-            const url = prompt(t("link_prompt"));
+            const url = prompt("Enter URL:");
             if (url) {
               if (!editor.state.selection.empty) {
                 editor.chain().focus().setLink({ href: url }).run();
@@ -214,28 +172,20 @@ const CommonToolbar = ({ editor }) => {
             }
           }
         },
-        <span className="rte-icon">🔗</span>,
-        t("link"),
+        <LinkIcon size={15} />,
+        "Link",
       )}
       {sep()}
 
-         {/* Font color */}
+      {/* Font color */}
       <div className="rte-color-wrap" ref={colorRef}>
         <button
           type="button"
           className="rte-btn rte-color-btn"
           onClick={() => setShowColorPicker(!showColorPicker)}
-          title={t("font_color")}
+          title="Font Color"
         >
-          <span
-            className="rte-color-letter"
-            style={{
-              borderBottomColor:
-                editor.getAttributes("textStyle").color || "#000",
-            }}
-          >
-            A
-          </span>
+          <Palette size={15} style={{ color: editor.getAttributes("textStyle").color || "#374151" }} />
         </button>
         {showColorPicker && (
           <div className="rte-color-dropdown">
@@ -259,7 +209,7 @@ const CommonToolbar = ({ editor }) => {
                 setShowColorPicker(false);
               }}
             >
-              {t("color_reset")}
+              Reset Color
             </button>
           </div>
         )}
@@ -271,17 +221,9 @@ const CommonToolbar = ({ editor }) => {
           type="button"
           className="rte-btn rte-color-btn"
           onClick={() => setShowBgColorPicker(!showBgColorPicker)}
-          title={t("bg_color")}
+          title="Highlight Color"
         >
-          <span
-            className="rte-color-letter rte-color-letter--bg"
-            style={{
-              backgroundColor:
-                editor.getAttributes("highlight").color || "transparent",
-            }}
-          >
-            A
-          </span>
+          <Highlighter size={15} style={{ color: editor.getAttributes("highlight").color || "#374151" }} />
         </button>
         {showBgColorPicker && (
           <div className="rte-color-dropdown">
@@ -305,7 +247,7 @@ const CommonToolbar = ({ editor }) => {
                 setShowBgColorPicker(false);
               }}
             >
-              {t("color_reset")}
+              Reset Highlight
             </button>
           </div>
         )}
@@ -313,56 +255,19 @@ const CommonToolbar = ({ editor }) => {
       {sep()}
 
       {/* Alignment */}
-      {btn(
-        editor.isActive({ textAlign: "left" }),
-        () => editor.chain().focus().setTextAlign("left").run(),
-        <span className="rte-icon">≡ₗ</span>,
-        t("align_left"),
-      )}
-      {btn(
-        editor.isActive({ textAlign: "center" }),
-        () => editor.chain().focus().setTextAlign("center").run(),
-        <span className="rte-icon">≡ᶜ</span>,
-        t("align_center"),
-      )}
-      {btn(
-        editor.isActive({ textAlign: "right" }),
-        () => editor.chain().focus().setTextAlign("right").run(),
-        <span className="rte-icon">≡ᵣ</span>,
-        t("align_right"),
-      )}
-      {btn(
-        editor.isActive({ textAlign: "justify" }),
-        () => editor.chain().focus().setTextAlign("justify").run(),
-        <span className="rte-icon">≡ⱼ</span>,
-        t("align_justify"),
-      )}
+      {btn(editor.isActive({ textAlign: "left" }), () => editor.chain().focus().setTextAlign("left").run(), <AlignLeft size={15} />, "Align Left")}
+      {btn(editor.isActive({ textAlign: "center" }), () => editor.chain().focus().setTextAlign("center").run(), <AlignCenter size={15} />, "Align Center")}
+      {btn(editor.isActive({ textAlign: "right" }), () => editor.chain().focus().setTextAlign("right").run(), <AlignRight size={15} />, "Align Right")}
+      {btn(editor.isActive({ textAlign: "justify" }), () => editor.chain().focus().setTextAlign("justify").run(), <AlignJustify size={15} />, "Justify")}
       {sep()}
 
       {/* Lists */}
-      {btn(
-        editor.isActive("bulletList"),
-        () => editor.chain().focus().toggleBulletList().run(),
-        <span className="rte-icon">•≡</span>,
-        t("bullet_list"),
-      )}
-      {btn(
-        editor.isActive("orderedList"),
-        () => editor.chain().focus().toggleOrderedList().run(),
-        <span className="rte-icon">1≡</span>,
-        t("ordered_list"),
-      )}
+      {btn(editor.isActive("bulletList"), () => editor.chain().focus().toggleBulletList().run(), <List size={15} />, "Bullet List")}
+      {btn(editor.isActive("orderedList"), () => editor.chain().focus().toggleOrderedList().run(), <ListOrdered size={15} />, "Numbered List")}
       {sep()}
 
       {/* Remove formatting */}
-      {btn(
-        false,
-        () => editor.chain().focus().clearNodes().unsetAllMarks().run(),
-        <span className="rte-icon">
-          T<sub>x</sub>
-        </span>,
-        t("clear_formatting"),
-      )}
+      {btn(false, () => editor.chain().focus().clearNodes().unsetAllMarks().run(), <RemoveFormatting size={15} />, "Clear Formatting")}
       {sep()}
 
       {/* Font family */}
@@ -375,111 +280,40 @@ const CommonToolbar = ({ editor }) => {
           else editor.chain().focus().unsetFontFamily().run();
         }}
       >
-        <option value="">{t("font_default")}</option>
-        <option value="Arial" style={{ fontFamily: "Arial" }}>
-          Arial
-        </option>
-        <option
-          value="Times New Roman"
-          style={{ fontFamily: "Times New Roman" }}
-        >
-          Times New Roman
-        </option>
-        <option value="Courier New" style={{ fontFamily: "Courier New" }}>
-          Courier New
-        </option>
-        <option value="Georgia" style={{ fontFamily: "Georgia" }}>
-          Georgia
-        </option>
-        <option value="Verdana" style={{ fontFamily: "Verdana" }}>
-          Verdana
-        </option>
-        <option value="Tahoma" style={{ fontFamily: "Tahoma" }}>
-          Tahoma
-        </option>
-        <option value="Trebuchet MS" style={{ fontFamily: "Trebuchet MS" }}>
-          Trebuchet MS
-        </option>
+        <option value="">Default Font</option>
+        <option value="Arial">Arial</option>
+        <option value="Times New Roman">Times New Roman</option>
+        <option value="Courier New">Courier New</option>
+        <option value="Georgia">Georgia</option>
+        <option value="Verdana">Verdana</option>
+        <option value="Tahoma">Tahoma</option>
+        <option value="Trebuchet MS">Trebuchet MS</option>
       </select>
       {sep()}
-
-    
 
       {/* Table */}
       {btn(
         false,
-        () =>
-          editor
-            .chain()
-            .focus()
-            .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
-            .run(),
-        <span className="rte-icon">⊞</span>,
-        t("insert_table"),
+        () => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(),
+        <TableIcon size={15} />,
+        "Insert Table",
       )}
       {editor.isActive("table") && (
         <>
-          {btn(
-            false,
-            () => editor.chain().focus().addColumnBefore().run(),
-            <span className="rte-icon">⫷</span>,
-            t("column_before"),
-          )}
-          {btn(
-            false,
-            () => editor.chain().focus().addColumnAfter().run(),
-            <span className="rte-icon">⫸</span>,
-            t("column_after"),
-          )}
-          {btn(
-            false,
-            () => editor.chain().focus().deleteColumn().run(),
-            <span className="rte-icon rte-icon--danger">⊘c</span>,
-            t("delete_column"),
-          )}
-          {btn(
-            false,
-            () => editor.chain().focus().addRowBefore().run(),
-            <span className="rte-icon">⤒</span>,
-            t("row_before"),
-          )}
-          {btn(
-            false,
-            () => editor.chain().focus().addRowAfter().run(),
-            <span className="rte-icon">⤓</span>,
-            t("row_after"),
-          )}
-          {btn(
-            false,
-            () => editor.chain().focus().deleteRow().run(),
-            <span className="rte-icon rte-icon--danger">⊘r</span>,
-            t("delete_row"),
-          )}
-          {btn(
-            false,
-            () => editor.chain().focus().deleteTable().run(),
-            <span className="rte-icon rte-icon--danger">✕⊞</span>,
-            t("delete_table"),
-          )}
+          {btn(false, () => editor.chain().focus().addColumnBefore().run(), <BetweenHorizontalStart size={15} />, "Add Column Before")}
+          {btn(false, () => editor.chain().focus().addColumnAfter().run(), <BetweenHorizontalEnd size={15} />, "Add Column After")}
+          {btn(false, () => editor.chain().focus().addRowBefore().run(), <BetweenVerticalStart size={15} />, "Add Row Before")}
+          {btn(false, () => editor.chain().focus().addRowAfter().run(), <BetweenVerticalEnd size={15} />, "Add Row After")}
+          {btn(false, () => editor.chain().focus().deleteColumn().run(), <TableColumnsSplit size={15} className="text-red-500" />, "Delete Column")}
+          {btn(false, () => editor.chain().focus().deleteRow().run(), <TableRowsSplit size={15} className="text-red-500" />, "Delete Row")}
+          {btn(false, () => editor.chain().focus().deleteTable().run(), <Trash2 size={15} className="text-red-500" />, "Delete Table")}
         </>
       )}
+      {sep()}
 
       {/* Indent / Outdent */}
-      {btn(
-        false,
-        () => editor.chain().focus().sinkListItem("listItem").run(),
-        <span className="rte-icon">→⇥</span>,
-        t("indent"),
-      )}
-       
-      {btn(
-        false,
-        () => editor.chain().focus().liftListItem("listItem").run(),
-        <span className="rte-icon">⇤←</span>,
-        t("outdent"),
-      )}
-      {sep()}
-     
+      {btn(false, () => editor.chain().focus().sinkListItem("listItem").run(), <Indent size={15} />, "Indent")}
+      {btn(false, () => editor.chain().focus().liftListItem("listItem").run(), <Outdent size={15} />, "Outdent")}
 
       {showSource && (
         <div className="rte-source-overlay">
@@ -500,7 +334,7 @@ const CommonToolbar = ({ editor }) => {
 const CommonRichTextEditor = ({
   value = "",
   onChange,
-  placeholder = "Enter Text…",
+  placeholder = "Start writing your content...",
 }) => {
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
@@ -545,7 +379,7 @@ const CommonRichTextEditor = ({
     return (
       <div className="rte-container">
         <div className="rte-toolbar" />
-        <div className="rte-content" style={{ minHeight: 120 }} />
+        <div className="rte-content" style={{ minHeight: 160 }} />
       </div>
     );
   }

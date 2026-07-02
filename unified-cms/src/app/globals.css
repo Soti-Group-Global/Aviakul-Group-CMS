@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@config "../../tailwind.config.js";
 
 .rich-content p { margin-bottom: 0.75rem; line-height: 1.7; }
 .rich-content ol { list-style: decimal; padding-left: 1.5rem; margin-bottom: 0.75rem; }
