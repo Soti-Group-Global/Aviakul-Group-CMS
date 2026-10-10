@@ -461,13 +461,14 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
       width: "w-[12%]",
       cellClass: "whitespace-normal",
       render: (tags) => {
-        if (!tags || tags.length === 0) return "—";
+        if (!tags || tags.length === 0)
+          return <span className="text-gray-400">—</span>;
         return (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-wrap gap-1">
             {tags.map((tag, i) => (
               <span
                 key={i}
-                className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs whitespace-nowrap"
+                className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-[11px] whitespace-nowrap"
               >
                 {tag}
               </span>
