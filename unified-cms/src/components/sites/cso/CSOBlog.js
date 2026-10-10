@@ -3,7 +3,14 @@ import ExpandableBlogContent from "../../common/ExpandableBlogContent.jsx";
 import CommonRichTextEditor from "../../common/CommonRichTextEditor.jsx";
 import { useState, useEffect } from "react";
 import { confirmDelete, showToast } from "@/lib/deleteAlert";
-import { XIcon, Pencil, Trash2, Plus, Image as ImageIcon, ChevronDown } from "lucide-react";
+import {
+  XIcon,
+  Pencil,
+  Trash2,
+  Plus,
+  Image as ImageIcon,
+  ChevronDown,
+} from "lucide-react";
 
 // ---------- SectionHeader (light theme) ----------
 const SectionHeader = ({ title, count, accent, onAdd }) => (
@@ -52,7 +59,7 @@ const StatusBadge = ({ status }) => {
 // ---------- DataTable (light theme, card-like, fixed layout) ----------
 const DataTable = ({ columns, rows, accent, onEdit, onDelete }) => (
   <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
-    <table className="w-full border-collapse text-sm table-fixed">
+    <table className="w-full border-collapse text-sm ">
       <thead>
         <tr className="bg-gray-50 border-b border-gray-200">
           {columns.map((col) => (
@@ -186,12 +193,10 @@ const Modal = ({ isOpen, onClose, title, children, isSubmitting }) => {
             disabled={isSubmitting}
             className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 text-xl leading-none disabled:opacity-50 transition-colors"
           >
-            <XIcon className="w-5 h-5"/>
+            <XIcon className="w-5 h-5" />
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto px-6 py-5">
-          {children}
-        </div>
+        <div className="flex-1 overflow-y-auto px-6 py-5">{children}</div>
       </div>
     </div>
   );
@@ -276,7 +281,13 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
   }, [statusFilter, sortBy, tagFilter]);
 
   const resetModal = () => {
-    setFormData({ title: "", content: "", status: "draft", section: "news", order: 0 });
+    setFormData({
+      title: "",
+      content: "",
+      status: "draft",
+      section: "news",
+      order: 0,
+    });
     setTagsInput("");
     setImageFile(null);
     setImageFiles([]);
@@ -307,7 +318,7 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
       const d = new Date(dateSource);
       const pad = (n) => String(n).padStart(2, "0");
       setPublishedDateInput(
-        `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+        `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`,
       );
     } else {
       setPublishedDateInput("");
@@ -320,13 +331,15 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
         blog.imageFileIds.map((id, idx) => ({
           id: id.toString ? id.toString() : id,
           filename: blog.imageFilenames?.[idx] || `Image ${idx + 1}`,
-        }))
+        })),
       );
     } else if (blog.imageFileId) {
       // Legacy: single image
       setExistingImages([
         {
-          id: blog.imageFileId.toString ? blog.imageFileId.toString() : blog.imageFileId,
+          id: blog.imageFileId.toString
+            ? blog.imageFileId.toString()
+            : blog.imageFileId,
           filename: blog.imageFilename || "Current image",
         },
       ]);
@@ -388,7 +401,10 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
 
     // When editing, send the existing images to keep
     if (editingBlog) {
-      payload.append("existingImageIds", JSON.stringify(existingImages.map((img) => img.id)));
+      payload.append(
+        "existingImageIds",
+        JSON.stringify(existingImages.map((img) => img.id)),
+      );
     }
 
     const tags = tagsInput
@@ -402,7 +418,7 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
     if (editingBlog) {
       payload.append(
         "publishedDate",
-        publishedDateInput ? new Date(publishedDateInput).toISOString() : ""
+        publishedDateInput ? new Date(publishedDateInput).toISOString() : "",
       );
     }
 
@@ -496,7 +512,8 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
       width: "w-[12%]",
       cellClass: "whitespace-normal",
       render: (tags) => {
-        if (!tags || tags.length === 0) return <span className="text-gray-400">—</span>;
+        if (!tags || tags.length === 0)
+          return <span className="text-gray-400">—</span>;
         return (
           <div className="flex flex-wrap gap-1">
             {tags.map((tag, i) => (
@@ -522,18 +539,27 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
       ),
     },
     {
+      key: "publishedDate",
+      label: "Published",
+      render: (v) => (
+        <span className="text-gray-500 text-xs whitespace-nowrap">
+          {v ? new Date(v).toLocaleDateString() : "—"}
+        </span>
+      ),
+    },
+    {
       key: "status",
       label: "Status",
       width: "w-[10%]",
       render: (v) => <StatusBadge status={v} />,
     },
     {
-      key: "publishedDate",
-      label: "Published",
+      key: "createdAt",
+      label: "Created",
       width: "w-[10%]",
       render: (v) => (
-        <span className="text-gray-500 text-xs whitespace-nowrap">
-          {v ? new Date(v).toLocaleDateString() : "—"}
+        <span className="text-gray-500 text-xs">
+          {new Date(v).toLocaleDateString()}
         </span>
       ),
     },
@@ -615,7 +641,9 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
             </div>
           </div>
 
-          <div className={`grid grid-cols-1 gap-4 ${editingBlog && formData.status === "published" ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
+          <div
+            className={`grid grid-cols-1 gap-4 ${editingBlog && formData.status === "published" ? "md:grid-cols-3" : "md:grid-cols-2"}`}
+          >
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
                 Section <span className="text-red-400">*</span>
@@ -669,7 +697,10 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Tags <span className="text-gray-400 font-normal">(comma‑separated)</span>
+              Tags{" "}
+              <span className="text-gray-400 font-normal">
+                (comma‑separated)
+              </span>
             </label>
             <input
               type="text"
@@ -683,9 +714,16 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Images <span className="text-gray-400 font-normal">(multiple allowed)</span>
+              Images{" "}
+              <span className="text-gray-400 font-normal">
+                (multiple allowed)
+              </span>
             </label>
-            <p className="text-xs text-gray-500 mb-2">For the blog thumbnail, use 1600 × 1000 px (16:10); minimum 800 × 500 px. Keep the main subject centred with some space around the edges to avoid top/bottom cropping.</p>
+            <p className="text-xs text-gray-500 mb-2">
+              For the blog thumbnail, use 1600 × 1000 px (16:10); minimum 800 ×
+              500 px. Keep the main subject centred with some space around the
+              edges to avoid top/bottom cropping.
+            </p>
             <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-colors">
               <input
                 type="file"
@@ -717,7 +755,7 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
                         type="button"
                         onClick={() =>
                           setExistingImages((prev) =>
-                            prev.filter((_, i) => i !== idx)
+                            prev.filter((_, i) => i !== idx),
                           )
                         }
                         disabled={isSubmitting}
@@ -752,7 +790,7 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
                         type="button"
                         onClick={() =>
                           setImageFiles((prev) =>
-                            prev.filter((_, i) => i !== idx)
+                            prev.filter((_, i) => i !== idx),
                           )
                         }
                         disabled={isSubmitting}
