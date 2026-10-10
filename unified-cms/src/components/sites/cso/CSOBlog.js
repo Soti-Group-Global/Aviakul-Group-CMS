@@ -1,3 +1,4 @@
+import ExpandableBlogContent from "../../common/ExpandableBlogContent.jsx";
 // NAOBlogs.jsx
 import CommonRichTextEditor from "../../common/CommonRichTextEditor.jsx";
 import { useState, useEffect } from "react";
@@ -486,15 +487,7 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
       width: "w-[30%]",
       cellClass: "whitespace-normal",
       render: (v) => {
-        // Strip HTML tags and truncate to plain text preview
-        const plainText = v
-          ? v.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim()
-          : "";
-        return (
-          <span className="text-gray-500 text-xs leading-relaxed line-clamp-2 block">
-            {plainText || "—"}
-          </span>
-        );
+        return <ExpandableBlogContent content={v} />;
       },
     },
     {
@@ -692,6 +685,7 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
               Images <span className="text-gray-400 font-normal">(multiple allowed)</span>
             </label>
+            <p className="text-xs text-gray-500 mb-2">For the blog thumbnail, use 1600 × 1000 px (16:10); minimum 800 × 500 px. Keep the main subject centred with some space around the edges to avoid top/bottom cropping.</p>
             <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-colors">
               <input
                 type="file"

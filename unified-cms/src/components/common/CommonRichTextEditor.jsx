@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import Paragraph from "@tiptap/extension-paragraph";
+import { Extension } from "@tiptap/core";
 import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
 import Link from "@tiptap/extension-link";
@@ -48,6 +50,20 @@ import {
   BetweenVerticalEnd,
 } from "lucide-react";
 import "./RichTextEditor.css";
+
+
+const ParagraphLineHeight = Paragraph.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      lineHeight: {
+        default: null,
+        parseHTML: (element) => element.style.lineHeight || null,
+        renderHTML: (attributes) => attributes.lineHeight ? { style: `line-height: ${attributes.lineHeight}` } : {},
+      },
+    };
+  },
+});
 
 /* ─── Preset colors ─── */
 const COLOR_PRESETS = [
@@ -135,6 +151,24 @@ const CommonToolbar = ({ editor }) => {
         <option value={2}>Heading 2</option>
         <option value={3}>Heading 3</option>
         <option value={4}>Heading 4</option>
+      </select>
+      {sep()}
+
+      <select
+        className="rte-select"
+        aria-label="Line spacing"
+        title="Line spacing for the current paragraph"
+        defaultValue="1.5"
+        onChange={(e) => {
+          const lineHeight = e.target.value;
+          editor.chain().focus().updateAttributes("paragraph", { lineHeight: lineHeight || null }).run();
+        }}
+      >
+        <option value="1">Line spacing: 1.0</option>
+        <option value="1.15">Line spacing: 1.15</option>
+        <option value="1.5">Line spacing: 1.5</option>
+        <option value="1.75">Line spacing: 1.75</option>
+        <option value="2">Line spacing: 2.0</option>
       </select>
       {sep()}
 
@@ -343,7 +377,8 @@ const CommonRichTextEditor = ({
     immediatelyRender: false,
     shouldRerenderOnTransaction: false,
     extensions: [
-      StarterKit.configure({ heading: { levels: [1, 2, 3, 4] }, link: false }),
+      StarterKit.configure({ heading: { levels: [1, 2, 3, 4] }, link: false, paragraph: false }),
+      ParagraphLineHeight,
       Underline,
       TextStyle,
       TextAlign.configure({ types: ["heading", "paragraph"] }),

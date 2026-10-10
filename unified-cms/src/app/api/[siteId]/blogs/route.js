@@ -55,7 +55,11 @@ export async function GET(req, { params }) {
     if (sectionFilter === "news") {
       filter.$and = filter.$and || [];
       filter.$and.push({
-        $or: [{ section: "news" }, { section: { $exists: false } }, { section: null }],
+        $or: [
+          { section: "news" },
+          { section: { $exists: false } },
+          { section: null },
+        ],
       });
     } else {
       filter.section = sectionFilter;
@@ -138,6 +142,7 @@ export async function POST(req) {
     const siteId = formData.get("siteId");
     const status = formData.get("status") || "draft";
     const section = formData.get("section") || "news";
+    const requestedPublishedDate = formData.get("publishedDate");
     const order = formData.get("order");
     const file = formData.get("imageFile"); // optional single image (legacy)
     const imageFiles = formData.getAll("imageFiles"); // multiple images
@@ -201,8 +206,14 @@ export async function POST(req) {
       imageFileIds = [imageFileId];
     }
 
-    // publishedDate: set to now if publishing, otherwise null
-    const publishedDate = status === "published" ? new Date() : null;
+    // Use a supplied publication date when provided; otherwise preserve the existing publish-now behavior.
+    let publishedDate = status === "published" ? new Date() : null;
+    if (requestedPublishedDate) {
+      const parsedDate = new Date(requestedPublishedDate);
+      if (!Number.isNaN(parsedDate.getTime())) publishedDate = parsedDate;
+    } else if (requestedPublishedDate === "") {
+      publishedDate = null;
+    }
 
     const blog = await Blog.create({
       title,

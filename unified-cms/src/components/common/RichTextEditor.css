@@ -274,3 +274,8 @@
   max-width: 100%;
   border-radius: 6px;
 }
+
+/* Keep paragraph spacing controlled; line-height is adjustable from the toolbar. */
+.rte-content .tiptap p { margin: 0.35em 0; line-height: 1.5; }
+.rte-content .tiptap p:first-child { margin-top: 0; }
+.rte-content .tiptap p:last-child { margin-bottom: 0; }

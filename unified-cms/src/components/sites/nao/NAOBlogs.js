@@ -1,3 +1,4 @@
+import ExpandableBlogContent from "../../common/ExpandableBlogContent.jsx";
 // NAOBlogs.jsx
 import CommonRichTextEditor from "../../common/CommonRichTextEditor.jsx";
 import { useState, useEffect } from "react";
@@ -103,7 +104,7 @@ const DataTable = ({ columns, rows, accent, onEdit, onDelete }) => (
             {columns.map((col) => (
               <td
                 key={col.key}
-                className="px-4 py-3 text-gray-700 whitespace-nowrap"
+                className={`px-4 py-3 text-gray-700 align-top  ${col.cellClass || ""}`}
               >
                 {col.render ? col.render(row[col.key], row) : row[col.key]}
               </td>
@@ -229,6 +230,7 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
     title: "",
     content: "",
     status: "draft",
+    section: "news",
     order: 0,
   });
   const [tagsInput, setTagsInput] = useState("");
@@ -238,6 +240,7 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
   const [sortBy, setSortBy] = useState("order");
   const [tagFilter, setTagFilter] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [publishedDateInput, setPublishedDateInput] = useState("");
 
   // Derive unique tags from blogs
   const uniqueTags = Array.from(
@@ -294,8 +297,15 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
   }, [statusFilter, sortBy, tagFilter]);
 
   const resetModal = () => {
-    setFormData({ title: "", content: "", status: "draft", order: 0 });
+    setFormData({
+      title: "",
+      content: "",
+      status: "draft",
+      section: "news",
+      order: 0,
+    });
     setTagsInput("");
+    setPublishedDateInput("");
     setImageFile(null);
     setEditingBlog(null);
     setError("");
@@ -312,9 +322,17 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
       title: blog.title,
       content: blog.content || "",
       status: blog.status,
+      section: blog.section || "news",
       order: blog.order || 0,
     });
     setTagsInput((blog.tags || []).join(", "));
+    if (blog.publishedDate) {
+      const d = new Date(blog.publishedDate);
+      const pad = (n) => String(n).padStart(2, "0");
+      setPublishedDateInput(
+        `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`,
+      );
+    } else setPublishedDateInput("");
     setImageFile(null);
     setModalOpen(true);
   };
@@ -358,7 +376,12 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
     payload.append("content", formData.content);
     payload.append("siteId", siteId);
     payload.append("status", formData.status);
+    payload.append("section", formData.section);
     payload.append("order", formData.order.toString());
+    payload.append(
+      "publishedDate",
+      publishedDateInput ? new Date(publishedDateInput).toISOString() : "",
+    );
     if (imageFile) payload.append("imageFile", imageFile);
 
     const tags = tagsInput
@@ -398,6 +421,8 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
     {
       key: "thumbnail",
       label: "Image",
+      width: "w-[60px]",
+
       render: (_, row) => (
         <div className="w-10 h-10 rounded-md overflow-hidden bg-gray-100 flex items-center justify-center">
           {row.imageFileId ? (
@@ -415,21 +440,26 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
     {
       key: "title",
       label: "Title",
-      render: (v) => <span className="font-medium text-gray-800">{v}</span>,
+      width: "w-[22%]",
+      cellClass: "whitespace-normal",
+      render: (v) => (
+        <span className="font-medium text-gray-800 line-clamp-2  block leading-snug">
+          {v}
+        </span>
+      ),
     },
     {
       key: "content",
       label: "Content",
-      render: (v) => (
-        <div
-          className="text-gray-500 text-xs max-w-xs prose prose-xs"
-          dangerouslySetInnerHTML={{ __html: v || "—" }}
-        />
-      ),
+      width: "w-[30%]",
+      cellClass: "whitespace-normal",
+      render: (v) => <ExpandableBlogContent content={v} />,
     },
     {
       key: "tags",
       label: "Tags",
+      width: "w-[12%]",
+      cellClass: "whitespace-normal",
       render: (tags) => {
         if (!tags || tags.length === 0) return "—";
         return (
@@ -447,13 +477,34 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
       },
     },
     {
+      key: "section",
+      label: "Section",
+      width: "w-[10%]",
+      render: (v) => (
+        <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium capitalize">
+          {v || "news"}
+        </span>
+      ),
+    },
+    {
+      key: "publishedDate",
+      label: "Published",
+      render: (v) => (
+        <span className="text-gray-500 text-xs whitespace-nowrap">
+          {v ? new Date(v).toLocaleDateString() : "—"}
+        </span>
+      ),
+    },
+    {
       key: "status",
       label: "Status",
+      width: "w-[10%]",
       render: (v) => <StatusBadge status={v} />,
     },
     {
       key: "createdAt",
       label: "Created",
+      width: "w-[10%]",
       render: (v) => (
         <span className="text-gray-500 text-xs">
           {new Date(v).toLocaleDateString()}
@@ -552,6 +603,38 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
               {/* <option value="archived">Archived</option> */}
             </select>
           </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Section
+              </label>
+              <select
+                value={formData.section}
+                onChange={(e) =>
+                  setFormData({ ...formData, section: e.target.value })
+                }
+                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm"
+                disabled={isSubmitting}
+              >
+                <option value="news">News</option>
+                <option value="events">Events</option>
+                <option value="stories">Stories</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Publication date{" "}
+                {editingBlog ? "" : "(set automatically when published)"}
+              </label>
+              <input
+                type="datetime-local"
+                value={publishedDateInput}
+                onChange={(e) => setPublishedDateInput(e.target.value)}
+                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm"
+                disabled={isSubmitting}
+              />
+            </div>
+          </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Tags (comma‑separated)
@@ -569,6 +652,10 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Featured Image (optional)
             </label>
+            <p className="text-xs text-gray-500 mb-2">
+              Recommended: 1600 × 1000 px (16:10). Minimum: 800 × 500 px. Keep
+              the main subject centred to reduce cropping in blog thumbnails.
+            </p>
             <input
               type="file"
               accept="image/*"
