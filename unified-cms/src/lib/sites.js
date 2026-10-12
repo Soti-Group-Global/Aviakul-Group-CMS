@@ -46,6 +46,7 @@ export const SITES = {
       { id: "experts", label: "Expert Panel", icon: "people" },
       { id: "resources", label: "Resources", icon: "resource" },
       { id: "partners", label: "Partners", icon: "partner" },
+      { id: "header-banner", label: "Header Banner", icon: "blog" },
       // { id: "registrations", label: "Registrations", icon: "users" },
       // { id: "news", label: "News & Updates", icon: "blog" },
       { id: "settings", label: "Settings", icon: "settings" },

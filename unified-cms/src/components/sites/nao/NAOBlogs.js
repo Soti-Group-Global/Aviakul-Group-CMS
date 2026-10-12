@@ -241,6 +241,7 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
   const [tagFilter, setTagFilter] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [publishedDateInput, setPublishedDateInput] = useState("");
+  const [previewMode, setPreviewMode] = useState(false);
 
   // Derive unique tags from blogs
   const uniqueTags = Array.from(
@@ -309,6 +310,7 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
     setImageFile(null);
     setEditingBlog(null);
     setError("");
+    setPreviewMode(false);
   };
 
   const openCreateModal = () => {
@@ -334,6 +336,7 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
       );
     } else setPublishedDateInput("");
     setImageFile(null);
+    setPreviewMode(false);
     setModalOpen(true);
   };
 
@@ -516,6 +519,96 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
 
   return (
     <div className="w-full">
+      <style jsx global>{`
+        .nao-article-preview-content {
+          color: #374151;
+          font-size: 15px;
+          line-height: 1.85;
+          overflow-wrap: anywhere;
+        }
+        .nao-article-preview-content p {
+          margin: 0 0 1.15em;
+        }
+        .nao-article-preview-content h1,
+        .nao-article-preview-content h2,
+        .nao-article-preview-content h3,
+        .nao-article-preview-content h4 {
+          color: #111827;
+          font-weight: 700;
+          line-height: 1.3;
+          margin: 1.8em 0 0.65em;
+        }
+        .nao-article-preview-content h1 {
+          font-size: 1.8rem;
+        }
+        .nao-article-preview-content h2 {
+          font-size: 1.5rem;
+        }
+        .nao-article-preview-content h3 {
+          font-size: 1.25rem;
+        }
+        .nao-article-preview-content img {
+          display: block;
+          max-width: 100%;
+          height: auto;
+          margin: 1.6rem 0 0.5rem;
+          border-radius: 4px;
+        }
+        .nao-article-preview-content figure.article-image-figure {
+          margin: 1.6rem 0;
+          width: fit-content;
+          max-width: 100%;
+        }
+        .nao-article-preview-content figure.article-image-figure img {
+          margin: 0 0 0.5rem;
+        }
+        .nao-article-preview-content figcaption {
+          text-align: right;
+          font-size: 0.75rem;
+          line-height: 1.5;
+          color: #6b7280;
+        }
+        .nao-article-preview-content [data-image-caption] {
+          display: block;
+        }
+        .nao-article-preview-content [data-image-credit] {
+          display: block;
+          margin-top: 0.15rem;
+          font-size: 0.68rem;
+        }
+        .nao-article-preview-content blockquote {
+          margin: 1.5rem 0;
+          border-left: 3px solid #93c5fd;
+          padding: 0.6rem 1rem;
+          background: #f8fafc;
+          color: #4b5563;
+        }
+        .nao-article-preview-content ul {
+          list-style: disc;
+          padding-left: 1.5rem;
+          margin: 1rem 0;
+        }
+        .nao-article-preview-content ol {
+          list-style: decimal;
+          padding-left: 1.5rem;
+          margin: 1rem 0;
+        }
+        .nao-article-preview-content a {
+          color: #2563eb;
+          text-decoration: underline;
+        }
+        .nao-article-preview-content table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 1rem 0;
+        }
+        .nao-article-preview-content th,
+        .nao-article-preview-content td {
+          border: 1px solid #d1d5db;
+          padding: 0.5rem;
+          text-align: left;
+        }
+      `}</style>
       <SectionHeader
         title="Blogs"
         count={blogs.length}
@@ -576,16 +669,68 @@ export const NAOBlogs = ({ accent = "#3b82f6", id: siteId }) => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Content
-            </label>
-            <div className="resize-y overflow-auto min-h-[180px] max-h-[600px] border border-gray-200 rounded-lg">
-              <CommonRichTextEditor
-                value={formData.content}
-                onChange={(html) => setFormData({ ...formData, content: html })}
-                disabled={isSubmitting}
-              />
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Article content
+              </label>
+              <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1">
+                <button
+                  type="button"
+                  onClick={() => setPreviewMode(false)}
+                  className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${!previewMode ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-800"}`}
+                  aria-pressed={!previewMode}
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewMode(true)}
+                  className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${previewMode ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-800"}`}
+                  aria-pressed={previewMode}
+                >
+                  Preview article
+                </button>
+              </div>
             </div>
+            {previewMode ? (
+              <div className="nao-article-preview rounded-xl border border-gray-200 bg-white p-5 md:p-8">
+                <article className="mx-auto max-w-3xl">
+                  <h1 className="mb-3 text-3xl font-bold leading-tight tracking-tight text-gray-900 md:text-4xl">
+                    {formData.title || "Article title"}
+                  </h1>
+                  <p className="mb-8 border-b border-gray-100 pb-4 text-xs text-gray-500">
+                    {publishedDateInput
+                      ? new Date(publishedDateInput).toLocaleDateString(
+                          undefined,
+                          { year: "numeric", month: "long", day: "numeric" },
+                        )
+                      : formData.status === "published"
+                        ? "Publication date will be assigned when published"
+                        : "Draft preview"}
+                  </p>
+                  {formData.content.trim() ? (
+                    <div
+                      className="nao-article-preview-content"
+                      dangerouslySetInnerHTML={{ __html: formData.content }}
+                    />
+                  ) : (
+                    <p className="text-sm italic text-gray-400">
+                      Your article content will appear here.
+                    </p>
+                  )}
+                </article>
+              </div>
+            ) : (
+              <div className="resize-y overflow-auto min-h-[180px] max-h-[600px] border border-gray-200 rounded-lg">
+                <CommonRichTextEditor
+                  value={formData.content}
+                  onChange={(html) =>
+                    setFormData((current) => ({ ...current, content: html }))
+                  }
+                  disabled={isSubmitting}
+                />
+              </div>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

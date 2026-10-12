@@ -185,7 +185,7 @@ const Modal = ({ isOpen, onClose, title, children, isSubmitting }) => {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4 py-6">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl relative animate-in fade-in zoom-in duration-200 max-h-[90vh] flex flex-col">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl relative animate-in fade-in zoom-in duration-200 max-h-[94vh] flex flex-col">
         <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100 flex-shrink-0">
           <h3 className="text-lg font-bold text-gray-800">{title}</h3>
           <button
@@ -225,6 +225,7 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
   const [tagFilter, setTagFilter] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [publishedDateInput, setPublishedDateInput] = useState("");
+  const [previewMode, setPreviewMode] = useState(false);
 
   // Derive unique tags from blogs
   const uniqueTags = Array.from(
@@ -629,16 +630,108 @@ export const CSOBlog = ({ accent = "#3b82f6", id: siteId }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Content
-            </label>
-            <div>
-              <CommonRichTextEditor
-                value={formData.content}
-                onChange={(html) => setFormData({ ...formData, content: html })}
-                disabled={isSubmitting}
-              />
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Article content
+              </label>
+              <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1">
+                <button
+                  type="button"
+                  onClick={() => setPreviewMode(false)}
+                  className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${!previewMode ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-800"}`}
+                  aria-pressed={!previewMode}
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewMode(true)}
+                  className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${previewMode ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-800"}`}
+                  aria-pressed={previewMode}
+                >
+                  Preview article
+                </button>
+              </div>
             </div>
+            {previewMode ? (
+              <div className="cso-article-preview rounded-xl border border-gray-200 bg-white p-5 md:p-8">
+                <style jsx global>{`
+                  .cso-article-preview-content {
+                    color: #374151;
+                    font-size: 15px;
+                    line-height: 1.85;
+                    overflow-wrap: anywhere;
+                  }
+                  .cso-article-preview-content p {
+                    margin: 0 0 1.15em;
+                  }
+                  .cso-article-preview-content img {
+                    display: block;
+                    max-width: 100%;
+                    height: auto;
+                    margin: 1.6rem 0 0.5rem;
+                    border-radius: 4px;
+                  }
+                  .cso-article-preview-content figure.article-image-figure {
+                    margin: 1.6rem 0;
+                    width: fit-content;
+                    max-width: 100%;
+                  }
+                  .cso-article-preview-content figure.article-image-figure img {
+                    margin: 0 0 0.5rem;
+                  }
+                  .cso-article-preview-content figcaption {
+                    text-align: right;
+                    font-size: 0.75rem;
+                    line-height: 1.5;
+                    color: #6b7280;
+                  }
+                  .cso-article-preview-content [data-image-caption] {
+                    display: block;
+                  }
+                  .cso-article-preview-content [data-image-credit] {
+                    display: block;
+                    margin-top: 0.15rem;
+                    font-size: 0.68rem;
+                  }
+                `}</style>
+                <article className="mx-auto max-w-3xl">
+                  <h1 className="mb-3 text-3xl font-bold leading-tight tracking-tight text-gray-900 md:text-4xl">
+                    {formData.title || "Article title"}
+                  </h1>
+                  <p className="mb-8 border-b border-gray-100 pb-4 text-xs text-gray-500">
+                    {publishedDateInput
+                      ? new Date(publishedDateInput).toLocaleDateString(
+                          undefined,
+                          { year: "numeric", month: "long", day: "numeric" },
+                        )
+                      : formData.status === "published"
+                        ? "Publication date will be assigned when published"
+                        : "Draft preview"}
+                  </p>
+                  {formData.content.trim() ? (
+                    <div
+                      className="cso-article-preview-content"
+                      dangerouslySetInnerHTML={{ __html: formData.content }}
+                    />
+                  ) : (
+                    <p className="text-sm italic text-gray-400">
+                      Your article content will appear here.
+                    </p>
+                  )}
+                </article>
+              </div>
+            ) : (
+              <div className="resize-y overflow-auto min-h-[180px] max-h-[600px] border border-gray-200 rounded-lg">
+                <CommonRichTextEditor
+                  value={formData.content}
+                  onChange={(html) =>
+                    setFormData((current) => ({ ...current, content: html }))
+                  }
+                  disabled={isSubmitting}
+                />
+              </div>
+            )}
           </div>
 
           <div

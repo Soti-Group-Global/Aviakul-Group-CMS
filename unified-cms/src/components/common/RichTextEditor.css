@@ -279,3 +279,124 @@
 .rte-content .tiptap p { margin: 0.35em 0; line-height: 1.5; }
 .rte-content .tiptap p:first-child { margin-top: 0; }
 .rte-content .tiptap p:last-child { margin-bottom: 0; }
+
+/* Editorial article images and quotations */
+.rte-content .tiptap figure.article-image-figure {
+  margin: 1.5rem 0;
+  max-width: 100%;
+  width: fit-content;
+}
+.rte-content .tiptap figure.article-image-figure img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 0 0.45rem;
+  border-radius: 4px;
+}
+.rte-content .tiptap figure.article-image-figure figcaption {
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: right;
+}
+.rte-content .tiptap [data-image-caption] { display: block; }
+.rte-content .tiptap [data-image-credit] {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+}
+.rte-content .tiptap blockquote {
+  margin: 1.25rem 0;
+  padding: 0.65rem 1rem;
+  border-left: 3px solid #93c5fd;
+  background: #f8fafc;
+  color: #4b5563;
+}
+.rte-content .tiptap blockquote p:last-child { margin-bottom: 0; }
+
+/* Accessible inline-image metadata dialog */
+.rte-image-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, .55);
+}
+.rte-image-dialog {
+  width: min(100%, 480px);
+  max-height: min(90vh, 760px);
+  overflow-y: auto;
+  padding: 22px;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, .25);
+  color: #111827;
+}
+.rte-image-dialog-header { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+.rte-image-dialog-header h3 { margin: 0; font-size: 18px; font-weight: 700; }
+.rte-image-dialog-header p { margin: 4px 0 0; color: #6b7280; font-size: 13px; }
+.rte-image-dialog-close { width: 32px; height: 32px; border: 0; border-radius: 8px; background: #f3f4f6; font-size: 24px; line-height: 1; cursor: pointer; }
+.rte-image-dialog-preview { display: block; width: 100%; max-height: 220px; object-fit: contain; margin: 0 0 16px; border-radius: 8px; background: #f9fafb; }
+.rte-image-dialog-field { display: block; margin: 14px 0; }
+.rte-image-dialog-field > span { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; font-weight: 600; }
+.rte-image-dialog-field small { color: #9ca3af; font-weight: 400; }
+.rte-image-dialog-field input { box-sizing: border-box; width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; outline: none; font: inherit; font-size: 14px; }
+.rte-image-dialog-field input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,.12); }
+.rte-image-dialog-error { color: #b91c1c; font-size: 13px; }
+.rte-image-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+.rte-image-dialog-actions button { padding: 9px 13px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.rte-image-dialog-actions button:disabled { opacity: .6; cursor: not-allowed; }
+.rte-image-dialog-cancel { border: 1px solid #d1d5db; background: #fff; color: #374151; }
+.rte-image-dialog-submit { border: 1px solid #2563eb; background: #2563eb; color: #fff; }
+
+
+/* Each inserted image has its own always-visible delete control in the editor. */
+.rte-content .tiptap figure.rte-image-node {
+  position: relative;
+  display: table;
+  width: fit-content;
+  max-width: 100%;
+  margin: 1.5rem 0;
+}
+.rte-content .tiptap .rte-image-node-media {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  line-height: 0;
+}
+.rte-content .tiptap .rte-image-node-media img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0;
+}
+.rte-content .tiptap .rte-image-delete {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid rgba(255,255,255,.7);
+  border-radius: 7px;
+  background: #dc2626;
+  color: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,.22);
+  cursor: pointer;
+}
+.rte-content .tiptap .rte-image-delete:hover { background: #b91c1c; }
+.rte-content .tiptap figure.rte-image-node figcaption {
+  width: 100%;
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: right;
+}

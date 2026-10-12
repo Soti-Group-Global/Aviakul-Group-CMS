@@ -23,6 +23,7 @@ import { NAOResources } from "./sites/nao/NAOResources";
 import { NAOPartners } from "./sites/nao/NAOPartners";
 import { NAORegistrations } from "./sites/nao/NAORegistrations";
 import { NAONews } from "./sites/nao/NAONews";
+import { NAOHeaderBanner } from "./sites/nao/NAOHeaderBanner";
 import { SchoolResources } from "./sites/portals/SchoolResources";
 import { StudentResources } from "./sites/portals/StudentResources";
 import { WebsiteResources } from "./sites/portals/WebsiteResources";
@@ -46,6 +47,7 @@ const map = {
     experts: NAOExperts,
     resources: NAOResources,
     partners: NAOPartners,
+    "header-banner": NAOHeaderBanner,
     registrations: NAORegistrations,
     news: NAONews,
   },
