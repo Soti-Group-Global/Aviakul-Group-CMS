@@ -2,6 +2,7 @@ import connectDB from "@/lib/mongodb";
 import { initGridFS, getBucket } from "@/lib/gridfs";
 import Blog from "@/models/NAO/Blog";
 import mongoose from "mongoose";
+import { ensureBlogPublicIds, nextBlogPublicId } from "@/lib/blogPublicId";
 
 // Helper to parse tags from FormData
 function parseTags(formData) {
@@ -27,6 +28,7 @@ export async function GET(req, { params }) {
   await connectDB();
 
   const { siteId } = await params;
+  await ensureBlogPublicIds(Blog, siteId);
 
   const { searchParams } = new URL(req.url);
 
@@ -215,7 +217,9 @@ export async function POST(req) {
       publishedDate = null;
     }
 
+    const publicId = await nextBlogPublicId();
     const blog = await Blog.create({
+      publicId,
       title,
       content,
       siteId,

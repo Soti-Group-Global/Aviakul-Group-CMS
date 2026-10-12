@@ -2,6 +2,12 @@ import mongoose from "mongoose";
 
 const BlogSchema = new mongoose.Schema(
   {
+    publicId: {
+      type: Number,
+      unique: true,
+      sparse: true,
+      index: true,
+    },
     title: {
       type: String,
       required: true,
@@ -18,7 +24,7 @@ const BlogSchema = new mongoose.Schema(
       },
     ],
     siteId: {
-      type: String
+      type: String,
       // type: mongoose.Schema.Types.ObjectId,
       // ref: "Site",
       // required: true,
@@ -37,11 +43,11 @@ const BlogSchema = new mongoose.Schema(
       enum: ["draft", "published"],
       default: "draft",
     },
-    tags:[
+    tags: [
       {
-        type:String,
-        trim:true
-      }
+        type: String,
+        trim: true,
+      },
     ],
     order: {
       type: Number,
@@ -66,6 +72,7 @@ BlogSchema.virtual("descriptionText").get(function () {
 
 // Indexes
 BlogSchema.index({ siteId: 1 });
+BlogSchema.index({ publicId: 1 }, { unique: true, sparse: true });
 BlogSchema.index({ status: 1 });
 BlogSchema.index({ createdAt: -1 });
 BlogSchema.index({ imageFileId: 1 });

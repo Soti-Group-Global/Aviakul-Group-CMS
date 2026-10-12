@@ -3,6 +3,7 @@ import { initGridFS, getBucket } from "@/lib/gridfs";
 import Blog from "@/models/NAO/Blog";
 import mongoose from "mongoose";
 import { ObjectId } from "mongodb";
+import { ensureBlogPublicIds } from "@/lib/blogPublicId";
 
 // Helper to parse tags from FormData (same as above)
 function parseTags(formData) {
@@ -26,7 +27,16 @@ export async function GET(req, { params }) {
 
   const { id } = await params;
 
-  const blog = await Blog.findById(id);
+  // Backfill older records so every published blog can receive a numeric public URL.
+  await ensureBlogPublicIds(Blog);
+  let blog = null;
+  if (/^\d+$/.test(id)) {
+    blog = await Blog.findOne({ publicId: Number(id) });
+  }
+  // Backward compatibility for CMS edit requests and previously shared MongoDB-ID URLs.
+  if (!blog && mongoose.isValidObjectId(id)) {
+    blog = await Blog.findById(id);
+  }
 
   if (!blog) {
     return Response.json(
@@ -119,7 +129,9 @@ export async function PUT(req, { params }) {
       }
 
       // Find images that need to be deleted (ones that were removed by user)
-      const oldIds = (existingBlog.imageFileIds || []).map((id) => id.toString());
+      const oldIds = (existingBlog.imageFileIds || []).map((id) =>
+        id.toString(),
+      );
       const idsToDelete = oldIds.filter((id) => !idsToKeep.includes(id));
 
       // Delete removed images from GridFS

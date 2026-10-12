@@ -162,7 +162,7 @@ export function NAOHeaderBanner({ accent = "#0E4DA4" }) {
           {message}
         </p>
       )}
-      <div className="overflow-hidden rounded-lg bg-[#1d9bf0] px-4 py-3 text-white">
+      {/* <div className="overflow-hidden rounded-lg bg-[#1d9bf0] px-4 py-3 text-white">
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/80">
           Preview
         </p>
@@ -181,7 +181,7 @@ export function NAOHeaderBanner({ accent = "#0E4DA4" }) {
             (item) => item.enabled !== false && item.text.trim(),
           ) && <p className="text-sm">No active announcements configured.</p>}
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }
