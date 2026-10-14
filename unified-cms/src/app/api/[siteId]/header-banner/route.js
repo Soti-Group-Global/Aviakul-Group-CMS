@@ -9,8 +9,11 @@ const normalizeItems = (items) => {
     const text = String(item?.text || "").trim();
     const actionText = String(item?.actionText || "Check here →").trim();
     const url = String(item?.url || "").trim();
-    if (!text || !actionText || !url)
-      throw new Error("Each banner item needs both text and a URL.");
+    if (!text || !actionText || !url) {
+      throw new Error(
+        "Each banner item needs announcement text, action text, and a URL.",
+      );
+    }
     if (!/^https?:\/\//i.test(url) && !url.startsWith("/")) {
       throw new Error("URLs must start with http://, https://, or /.");
     }
@@ -24,11 +27,22 @@ const normalizeItems = (items) => {
   });
 };
 
-export async function GET() {
+export async function GET(_req, { params }) {
   try {
+    const { siteId } = await params;
+    if (!["nao", "cso"].includes(siteId)) {
+      return Response.json(
+        { success: false, message: "Unsupported site." },
+        { status: 404 },
+      );
+    }
     await connectDB();
-    const doc = await HeaderBanner.findOne({ siteId: "nao" }).lean();
-    return Response.json({ success: true, data: doc?.items || [] });
+    const doc = await HeaderBanner.findOne({ siteId }).lean();
+    return Response.json({
+      success: true,
+      enabled: doc?.enabled !== false,
+      data: doc?.items || [],
+    });
   } catch (error) {
     return Response.json(
       { success: false, message: error.message },
@@ -37,19 +51,28 @@ export async function GET() {
   }
 }
 
-export async function PUT(req) {
+export async function PUT(req, { params }) {
   try {
+    const { siteId } = await params;
+    if (!["nao", "cso"].includes(siteId)) {
+      return Response.json(
+        { success: false, message: "Unsupported site." },
+        { status: 404 },
+      );
+    }
     await connectDB();
     const body = await req.json();
     const items = normalizeItems(body.items);
-    if (!items)
+    if (!items) {
       return Response.json(
         { success: false, message: "items must be an array." },
         { status: 400 },
       );
+    }
+    const enabled = body.enabled !== false;
     const doc = await HeaderBanner.findOneAndUpdate(
-      { siteId: "nao" },
-      { $set: { items } },
+      { siteId },
+      { $set: { items, enabled } },
       {
         new: true,
         upsert: true,
@@ -57,7 +80,11 @@ export async function PUT(req) {
         setDefaultsOnInsert: true,
       },
     ).lean();
-    return Response.json({ success: true, data: doc.items });
+    return Response.json({
+      success: true,
+      enabled: doc.enabled !== false,
+      data: doc.items,
+    });
   } catch (error) {
     return Response.json(
       { success: false, message: error.message },

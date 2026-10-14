@@ -23,7 +23,7 @@ import { NAOResources } from "./sites/nao/NAOResources";
 import { NAOPartners } from "./sites/nao/NAOPartners";
 import { NAORegistrations } from "./sites/nao/NAORegistrations";
 import { NAONews } from "./sites/nao/NAONews";
-import { NAOHeaderBanner } from "./sites/nao/NAOHeaderBanner";
+import { HeaderBannerManager } from "./common/HeaderBannerManager";
 import { SchoolResources } from "./sites/portals/SchoolResources";
 import { StudentResources } from "./sites/portals/StudentResources";
 import { WebsiteResources } from "./sites/portals/WebsiteResources";
@@ -37,6 +37,7 @@ const map = {
   // },
   cso: {
     blogs: CSOBlog,
+    "header-banner": HeaderBannerManager,
     programs: CSOPrograms,
     team: CSOTeam,
     donations: CSODonations,
@@ -47,7 +48,7 @@ const map = {
     experts: NAOExperts,
     resources: NAOResources,
     partners: NAOPartners,
-    "header-banner": NAOHeaderBanner,
+    "header-banner": HeaderBannerManager,
     registrations: NAORegistrations,
     news: NAONews,
   },
@@ -63,7 +64,7 @@ export const ModuleRouter = ({ siteId, moduleId, accent, site }) => {
     return <SettingsPanel site={site} accent={accent} />;
   const Component = map[siteId]?.[moduleId];
   return Component ? (
-    <Component accent={accent} id={site.id} />
+    <Component accent={accent} id={site.id} siteId={siteId} />
   ) : (
     <div style={{ color: "rgba(255,255,255,0.4)" }}>Module not found</div>
   );

@@ -26,6 +26,7 @@ export const SITES = {
     modules: [
       // { id: "dashboard", label: "Dashboard", icon: "home" },
       { id: "blogs", label: "Blogs", icon: "blog" },
+      { id: "header-banner", label: "Header Banner", icon: "blog" },
       // { id: "programs", label: "Programs", icon: "award" },
       // { id: "team", label: "Team Members", icon: "people" },
       // { id: "donations", label: "Donations", icon: "donation" },
